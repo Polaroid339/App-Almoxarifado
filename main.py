@@ -3,6 +3,11 @@ import os
 import pandas as pd
 from datetime import datetime
 
+"""
+Gestão de Almoxarifado
+Sistema para controle de estoque e movimentações de produtos
+"""
+
 # Definição dos arquivos CSV
 arquivos = {
     "estoque": "./Planilhas/Estoque.csv",
