@@ -30,7 +30,7 @@ def exibir_relatorio():
     os.system('cls')
     try:
         df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
-        print("\nRelatório de Estoque:")
+        print("Relatório de Estoque:")
         print(df.to_string(index=False))
     except FileNotFoundError:
         print("Arquivo de estoque não encontrado.")
@@ -94,17 +94,23 @@ def atualizar_estoque(codigo, nova_quantidade):
 def cadastrar_estoque():
     codigo = obter_proximo_codigo()
     descricao = input("Descrição do produto: ").upper()
-    valor_un = float(input("Valor unitário (R$): "))
     quantidade = int(input("Quantidade: "))
+    valor_un = float(input("Valor unitário (R$): "))
     localizacao = input("Localização do produto: ").upper()
     data = datetime.now().strftime("%H:%M %d/%m/%Y")
-    valor_total = quantidade * valor_un
     
-    with open(arquivos["estoque"], "a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow([codigo, descricao, valor_un, valor_total, quantidade, data, localizacao])
-    os.system('cls')
-    print(f"Produto cadastrado no estoque com código {codigo}!")
+    confirmacao = input("Deseja cadastrar este produto? (S/N): ").strip().upper()
+    if confirmacao == "S":
+        valor_total = quantidade * valor_un
+        
+        with open(arquivos["estoque"], "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([codigo, descricao, valor_un, valor_total, quantidade, data, localizacao])
+        os.system('cls')
+        print(f"Produto cadastrado no estoque com código {codigo}!")
+    else:
+        os.system('cls')
+        print("Operação cancelada.")
 
 # Função para registrar entrada de produto
 def registrar_entrada():
@@ -169,6 +175,7 @@ def registrar_saida():
 def menu():
     criar_planilhas()
     while True:
+        print("\nGestão de Almoxarifado")
         print("\n1 - Cadastrar produto no estoque")
         print("2 - Registrar entrada de produto")
         print("3 - Registrar saída de produto")
@@ -176,6 +183,7 @@ def menu():
         print("5 - Exportar planilhas para Excel")
         print("6 - Sair\n")
         opcao = input("Escolha uma opção: ")
+        print()
         
         if opcao == "1":
             cadastrar_estoque()
