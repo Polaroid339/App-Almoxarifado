@@ -11,13 +11,15 @@ arquivos = {
 }
 
 # Função para criar os arquivos CSV caso não existam
+
+
 def criar_planilhas():
     colunas = {
         "estoque": ["CODIGO", "DESCRICAO", "VALOR UN", "VALOR TOTAL", "QUANTIDADE", "DATA", "LOCALIZACAO"],
         "entrada": ["CODIGO", "DESCRICAO", "QUANTIDADE", "VALOR UN", "VALOR TOTAL", "DATA"],
         "saida": ["CODIGO", "DESCRICAO", "QUANTIDADE", "SOLICITANTE", "DATA"]
     }
-    
+
     for nome, arquivo in arquivos.items():
         if not os.path.exists(arquivo):
             with open(arquivo, "w", newline="", encoding="utf-8") as f:
@@ -26,6 +28,8 @@ def criar_planilhas():
     print("\nPlanilhas criadas/verificadas com sucesso!")
 
 # Função para exibir relatório completo do estoque
+
+
 def exibir_relatorio():
     os.system('cls')
     try:
@@ -36,11 +40,13 @@ def exibir_relatorio():
         print("Arquivo de estoque não encontrado.")
 
 # Função para exportar as planilhas para Excel
+
+
 def exportar_para_excel():
     pasta_saida = "Relatorios"
     os.makedirs(pasta_saida, exist_ok=True)
     caminho_arquivo = os.path.join(pasta_saida, "Relatorio_Almoxarifado.xlsx")
-    
+
     with pd.ExcelWriter(caminho_arquivo) as writer:
         for nome, arquivo in arquivos.items():
             try:
@@ -52,6 +58,8 @@ def exportar_para_excel():
     print(f"Relatórios exportados para {caminho_arquivo}")
 
 # Função para obter o próximo código disponível
+
+
 def obter_proximo_codigo():
     try:
         with open(arquivos["estoque"], "r", encoding="utf-8") as f:
@@ -64,6 +72,8 @@ def obter_proximo_codigo():
         return 3
 
 # Função para buscar detalhes de um produto pelo código
+
+
 def buscar_produto(codigo):
     try:
         with open(arquivos["estoque"], "r", encoding="utf-8") as f:
@@ -77,20 +87,24 @@ def buscar_produto(codigo):
     return None
 
 # Função para atualizar o estoque
+
+
 def atualizar_estoque(codigo, nova_quantidade):
     with open(arquivos["estoque"], "r", encoding="utf-8") as f:
         produtos = list(csv.reader(f))
-    
+
     for produto in produtos:
         if produto[0] == codigo:
             produto[4] = str(nova_quantidade)
             produto[3] = str(float(produto[2]) * int(nova_quantidade))
-    
+
     with open(arquivos["estoque"], "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerows(produtos)
 
 # Função para cadastrar um item no estoque
+
+
 def cadastrar_estoque():
     codigo = obter_proximo_codigo()
     descricao = input("Descrição do produto: ").upper()
@@ -98,14 +112,16 @@ def cadastrar_estoque():
     valor_un = float(input("Valor unitário (R$): "))
     localizacao = input("Localização do produto: ").upper()
     data = datetime.now().strftime("%H:%M %d/%m/%Y")
-    
-    confirmacao = input("Deseja cadastrar este produto? (S/N): ").strip().upper()
+
+    confirmacao = input(
+        "Deseja cadastrar este produto? (S/N): ").strip().upper()
     if confirmacao == "S":
         valor_total = quantidade * valor_un
-        
+
         with open(arquivos["estoque"], "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow([codigo, descricao, valor_un, valor_total, quantidade, data, localizacao])
+            writer.writerow([codigo, descricao, valor_un,
+                            valor_total, quantidade, data, localizacao])
         os.system('cls')
         print(f"Produto cadastrado no estoque com código {codigo}!")
     else:
@@ -113,22 +129,26 @@ def cadastrar_estoque():
         print("Operação cancelada.")
 
 # Função para registrar entrada de produto
+
+
 def registrar_entrada():
     codigo = input("Código do produto: ")
     produto = buscar_produto(codigo)
-    
+
     if produto:
         print(f"Produto encontrado: {produto[1]}")
-        confirmacao = input("Deseja registrar entrada neste produto? (S/N): ").strip().upper()
+        confirmacao = input(
+            "Deseja registrar entrada neste produto? (S/N): ").strip().upper()
         if confirmacao == "S":
             quantidade_adicionada = int(input("Quantidade adicionada: "))
             nova_quantidade = int(produto[4]) + quantidade_adicionada
             data = datetime.now().strftime("%H:%M %d/%m/%Y")
-            
+
             with open(arquivos["entrada"], "a", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow([codigo, produto[1], quantidade_adicionada, produto[2], float(produto[2]) * quantidade_adicionada, data])
-            
+                writer.writerow([codigo, produto[1], quantidade_adicionada, produto[2], float(
+                    produto[2]) * quantidade_adicionada, data])
+
             atualizar_estoque(codigo, nova_quantidade)
             os.system('cls')
             print("Entrada registrada e estoque atualizado!")
@@ -140,13 +160,16 @@ def registrar_entrada():
         print("Código do produto não encontrado.")
 
 # Função para registrar saída de produto
+
+
 def registrar_saida():
     codigo = input("Código do produto: ")
     produto = buscar_produto(codigo)
-    
+
     if produto:
         print(f"Produto encontrado: {produto[1]}")
-        confirmacao = input("Deseja dar saída neste produto? (S/N): ").strip().upper()
+        confirmacao = input(
+            "Deseja dar saída neste produto? (S/N): ").strip().upper()
         if confirmacao == "S":
             quantidade_retirada = int(input("Quantidade retirada: "))
             if quantidade_retirada > int(produto[4]):
@@ -156,11 +179,12 @@ def registrar_saida():
             solicitante = input("Nome do solicitante: ").upper()
             nova_quantidade = int(produto[4]) - quantidade_retirada
             data = datetime.now().strftime("%H:%M %d/%m/%Y")
-            
+
             with open(arquivos["saida"], "a", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow([codigo, produto[1], quantidade_retirada, solicitante, data])
-            
+                writer.writerow(
+                    [codigo, produto[1], quantidade_retirada, solicitante, data])
+
             atualizar_estoque(codigo, nova_quantidade)
             os.system('cls')
             print("Saída registrada e estoque atualizado!")
@@ -172,6 +196,8 @@ def registrar_saida():
         print("Código do produto não encontrado.")
 
 # Menu de opções
+
+
 def menu():
     criar_planilhas()
     while True:
@@ -184,7 +210,7 @@ def menu():
         print("6 - Sair\n")
         opcao = input("Escolha uma opção: ")
         print()
-        
+
         if opcao == "1":
             cadastrar_estoque()
         elif opcao == "2":
@@ -201,6 +227,7 @@ def menu():
         else:
             os.system('cls')
             print("Opção inválida!")
+
 
 # Execução do programa
 if __name__ == "__main__":
