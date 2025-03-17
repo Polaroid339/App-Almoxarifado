@@ -27,6 +27,7 @@ def criar_planilhas():
 
 # Função para exibir relatório completo do estoque
 def exibir_relatorio():
+    os.system('cls')
     try:
         df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
         print("\nRelatório de Estoque:")
@@ -47,7 +48,7 @@ def exportar_para_excel():
                 df.to_excel(writer, sheet_name=nome.capitalize(), index=False)
             except FileNotFoundError:
                 print(f"Arquivo {arquivo} não encontrado.")
-    
+    os.system('cls')
     print(f"Relatórios exportados para {caminho_arquivo}")
 
 # Função para obter o próximo código disponível
