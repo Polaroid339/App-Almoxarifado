@@ -5,9 +5,9 @@ from datetime import datetime
 
 # Definição dos arquivos CSV
 arquivos = {
-    "estoque": "Estoque.csv",
-    "entrada": "Entrada.csv",
-    "saida": "Saida.csv"
+    "estoque": "./Planilhas/Estoque.csv",
+    "entrada": "./Planilhas/Entrada.csv",
+    "saida": "./Planilhas/Saida.csv"
 }
 
 # Função para criar os arquivos CSV caso não existam
