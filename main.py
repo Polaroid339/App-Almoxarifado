@@ -297,17 +297,42 @@ def editar_produto():
 
 def pesquisar_produto():
     os.system('cls')
-    nome_busca = input(
-        "> Digite o nome do produto para buscar: ").strip().upper()
+    nome_busca = input("> Digite o nome do produto para buscar: ").strip().upper()
 
     try:
         df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
-        resultado = df[df["DESCRICAO"].str.contains(
-            nome_busca, na=False, case=False)]
+        resultado = df[df["DESCRICAO"].str.contains(nome_busca, na=False, case=False)]
 
         if not resultado.empty:
-            logger.warning("\nProdutos encontrados:")
-            print(resultado.to_string(index=False))
+            total_produtos = len(resultado)
+            itens_por_pagina = 10
+            pagina_atual = 0
+
+            while True:
+                os.system('cls')
+                inicio = pagina_atual * itens_por_pagina
+                fim = inicio + itens_por_pagina
+                pagina = resultado.iloc[inicio:fim]
+
+                logger.info("\nProdutos encontrados:\n")
+                print(tabulate(pagina, headers='keys', tablefmt='fancy_grid', showindex=False))
+
+                print(f"\nPágina {pagina_atual + 1} de {((total_produtos - 1) // itens_por_pagina) + 1}")
+                print("\n1 - Próxima página")
+                print("2 - Página anterior")
+                print("3 - Voltar ao menu")
+
+                opcao = input("\n> Escolha uma opção: ")
+
+                if opcao == "1" and fim < total_produtos:
+                    pagina_atual += 1
+                elif opcao == "2" and pagina_atual > 0:
+                    pagina_atual -= 1
+                elif opcao == "3":
+                    os.system('cls')
+                    break
+                else:
+                    logger.warning("\nOpção inválida! Tente novamente.")
         else:
             logger.warning("Nenhum produto encontrado com esse nome.")
     except FileNotFoundError:
@@ -323,6 +348,7 @@ def excluir_produto():
 
     if produto:
         print(f"Produto encontrado: {produto[1]}")
+        logger.error("Excluir produtos não é recomendado, pois desordena a ordem dos códigos.")
         confirmacao = input(
             "> Tem certeza que deseja excluir este produto? (S/N): ").strip().upper()
 
@@ -351,7 +377,7 @@ def excluir_produto():
 def menu():
     criar_planilhas()
     while True:
-        print("\nGESTÃO DE ALMOXARIFADO\n")
+        logger.debug("\nGESTÃO DE ALMOXARIFADO\n")
         print("[1] Cadastrar produto no estoque")
         print("[2] Registrar entrada de produto")
         print("[3] Registrar saída de produto")
@@ -395,3 +421,5 @@ def menu():
 # Execução do programa
 if __name__ == "__main__":
     menu()
+
+# python -m PyInstaller --onefile --name=Almoxarifado main.py
