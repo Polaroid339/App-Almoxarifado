@@ -348,7 +348,8 @@ def pesquisar_produto():
                 print("3 - Ir para uma página específica")
                 print("4 - Registrar entrada de produto")
                 print("5 - Registrar saída de produto")
-                print("6 - Voltar ao menu")
+                print("6 - Pesquisar outro produto")
+                print("7 - Voltar ao menu")
 
                 opcao = input("\n> Escolha uma opção: ")
 
@@ -374,6 +375,8 @@ def pesquisar_produto():
                 elif opcao == "5":
                     registrar_saida()
                 elif opcao == "6":
+                    pesquisar_produto()
+                elif opcao == "7":
                     os.system('cls')
                     break
                 else:
@@ -480,17 +483,17 @@ def itens_esgotados():
 def menu():
     criar_planilhas()
     while True:
-        logger.debug("\n---------- GESTÃO DE ALMOXARIFADO ----------\n")
-        print("[1] Cadastrar produto no estoque")
-        print("[2] Registrar entrada de produto")
-        print("[3] Registrar saída de produto")
-        print("[4] Exibir relatório de estoque")
-        print("[5] Exportar planilhas para Excel")
-        print("[6] Editar produto no estoque")
-        print("[7] Pesquisar produto no estoque")
-        print("[8] Excluir produto do estoque")
-        print("[9] Exportar itens esgotados")
-        print("[0] Sair\n")
+        logger.debug("\n---------[ GESTÃO DE ALMOXARIFADO ]---------\n")
+        print("\033[1;36;40m[1]\033[0;37;40m Cadastrar produto no estoque")
+        print("\033[1;36;40m[2]\033[0;37;40m Registrar entrada de produto")
+        print("\033[1;36;40m[3]\033[0;37;40m Registrar saída de produto")
+        print("\033[1;36;40m[4]\033[0;37;40m Exibir relatório de estoque")
+        print("\033[1;36;40m[5]\033[0;37;40m Exportar planilhas para Excel")
+        print("\033[1;36;40m[6]\033[0;37;40m Editar produto no estoque")
+        print("\033[1;36;40m[7]\033[0;37;40m Pesquisar produto no estoque")
+        print("\033[1;36;40m[8]\033[0;37;40m Excluir produto do estoque")
+        print("\033[1;36;40m[9]\033[0;37;40m Exportar itens esgotados")
+        print("\033[1;31;40m[0]\033[0;37;40m Sair\n")
         logger.debug("--------------------------------------------\n")
         opcao = input("> Escolha uma opção: ")
         print()
@@ -524,8 +527,6 @@ def menu():
         except Exception as e:
             print(f"Ocorreu um erro inesperado: {e}")
 
-
-# Execução do programa
 if __name__ == "__main__":
     menu()
 
