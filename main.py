@@ -78,7 +78,8 @@ def exibir_relatorio():
             pagina = df.iloc[inicio:fim]
 
             logger.info("\nRelatório de Estoque\n")
-            print(tabulate(pagina, headers='keys', tablefmt='fancy_grid', showindex=False))
+            print(tabulate(pagina, headers='keys',
+                  tablefmt='fancy_grid', showindex=False))
 
             logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
             print("\n1 - Próxima página")
@@ -95,7 +96,8 @@ def exibir_relatorio():
             elif opcao == "2" and pagina_atual > 0:
                 pagina_atual -= 1
             elif opcao == "3":
-                num_pagina = input(f"\n> Digite um número de página (1-{total_paginas}): ")
+                num_pagina = input(
+                    f"\n> Digite um número de página (1-{total_paginas}): ")
                 if num_pagina.isdigit():
                     num_pagina = int(num_pagina) - 1
                     if 0 <= num_pagina < total_paginas:
@@ -219,7 +221,8 @@ def registrar_entrada():
         confirmacao = input(
             "> Deseja registrar entrada neste produto? (S/N): ").strip().upper()
         if confirmacao == "S":
-            quantidade_adicionada = entrada_inteiro("> Quantidade adicionada: ")
+            quantidade_adicionada = entrada_inteiro(
+                "> Quantidade adicionada: ")
             nova_quantidade = int(produto[4]) + quantidade_adicionada
             data = datetime.now().strftime("%H:%M %d/%m/%Y")
 
@@ -315,11 +318,13 @@ def editar_produto():
 
 def pesquisar_produto():
     os.system('cls')
-    nome_busca = input("> Digite o nome do produto para buscar: ").strip().upper()
+    nome_busca = input(
+        "> Digite o nome do produto para buscar: ").strip().upper()
 
     try:
         df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
-        resultado = df[df["DESCRICAO"].str.contains(nome_busca, na=False, case=False)]
+        resultado = df[df["DESCRICAO"].str.contains(
+            nome_busca, na=False, case=False)]
 
         if not resultado.empty:
             total_produtos = len(resultado)
@@ -334,7 +339,8 @@ def pesquisar_produto():
                 pagina = resultado.iloc[inicio:fim]
 
                 logger.info("\nProdutos encontrados:\n")
-                print(tabulate(pagina, headers='keys', tablefmt='fancy_grid', showindex=False))
+                print(tabulate(pagina, headers='keys',
+                      tablefmt='fancy_grid', showindex=False))
 
                 logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
                 print("\n1 - Próxima página")
@@ -351,16 +357,18 @@ def pesquisar_produto():
                 elif opcao == "2" and pagina_atual > 0:
                     pagina_atual -= 1
                 elif opcao == "3":
-                    num_pagina = input(f"\n> Digite um número de página (1-{total_paginas}): ")
+                    num_pagina = input(
+                        f"\n> Digite um número de página (1-{total_paginas}): ")
                     if num_pagina.isdigit():
                         num_pagina = int(num_pagina) - 1
                         if 0 <= num_pagina < total_paginas:
                             pagina_atual = num_pagina
                         else:
-                            logger.warning("\nPágina inválida! Tente novamente.")
+                            logger.warning(
+                                "\nPágina inválida! Tente novamente.")
                     else:
                         logger.warning("\nEntrada inválida! Digite um número.")
-                        
+
                 elif opcao == "4":
                     registrar_entrada()
                 elif opcao == "5":
@@ -387,7 +395,8 @@ def excluir_produto():
 
     if produto:
         print(f"Produto encontrado: {produto[1]}")
-        logger.error("Excluir produtos não é recomendado, pois desordena a ordem dos códigos.")
+        logger.error(
+            "Excluir produtos não é recomendado, pois desordena a ordem dos códigos.")
         confirmacao = input(
             "> Tem certeza que deseja excluir este produto? (S/N): ").strip().upper()
 
@@ -411,6 +420,60 @@ def excluir_produto():
         os.system('cls')
         logger.warning("Código do produto não encontrado.")
 
+    # Função para exibir relatório de produtos esgotados e exportá-los para um arquivo .txt
+
+
+def itens_esgotados():
+    os.system('cls')
+    try:
+        # Carregar o estoque atual
+        df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
+
+        if df.empty:
+            logger.warning("\nO estoque está vazio!\n")
+            return
+
+        # Filtrar produtos com quantidade igual ou menor que zero
+        faltantes = df[df["QUANTIDADE"].astype(int) <= 0]
+
+        if faltantes.empty:
+            logger.info("\nNão há produtos esgotados.\n")
+            return
+
+        # Exibir o relatório na tela
+        logger.info("\nProdutos esgotados do estoque:\n")
+        print(tabulate(faltantes[["CODIGO", "DESCRICAO"]],
+              headers='keys', tablefmt='fancy_grid', showindex=False))
+        print()
+        confirmacao = input(
+            "> Deseja exportar os itens esgotados? (S/N): ").strip().upper()
+        if confirmacao == "S":
+
+            # Criar a pasta Relatorios caso não exista
+            os.makedirs("Relatorios", exist_ok=True)
+
+            # Exportar para arquivo .txt
+            caminho_arquivo = os.path.join(
+                "Relatorios", "Produtos_Esgotados.txt")
+            with open(caminho_arquivo, "w", encoding="utf-8") as f:
+                f.write("Relatório de produtos esgotados\n")
+                f.write("-" * 40 + "\n")
+                for index, row in faltantes.iterrows():
+                    f.write(
+                        f"Código: {row['CODIGO']} | Descrição: {row['DESCRICAO']}\n")
+                f.write("-" * 40 + "\n")
+
+            os.system('cls')
+            logger.info(
+                f"Relatório de produtos exgotados exportado para {caminho_arquivo}")
+        else:
+            os.system('cls')
+            logger.warning("Operação cancelada.")
+
+    except FileNotFoundError:
+        os.system('cls')
+        logger.warning("\nArquivo de estoque não encontrado.\n")
+
 
 # Menu de opções
 
@@ -426,7 +489,8 @@ def menu():
         print("[6] Editar produto no estoque")
         print("[7] Pesquisar produto no estoque")
         print("[8] Excluir produto do estoque")
-        print("[9] Sair\n")
+        print("[9] Exportar itens esgotados")
+        print("[0] Sair\n")
         logger.debug("--------------------------------------------\n")
         opcao = input("> Escolha uma opção: ")
         print()
@@ -449,6 +513,8 @@ def menu():
             elif opcao == "8":
                 excluir_produto()
             elif opcao == "9":
+                itens_esgotados()
+            elif opcao == "0":
                 print("Saindo...")
                 break
             else:
