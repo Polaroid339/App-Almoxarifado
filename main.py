@@ -67,7 +67,7 @@ def exibir_relatorio():
             return
 
         total_produtos = len(df)
-        itens_por_pagina = 10
+        itens_por_pagina = 20
         total_paginas = ((total_produtos - 1) // itens_por_pagina) + 1
         pagina_atual = 0
 
@@ -328,7 +328,7 @@ def pesquisar_produto():
 
         if not resultado.empty:
             total_produtos = len(resultado)
-            itens_por_pagina = 10
+            itens_por_pagina = 20
             total_paginas = ((total_produtos - 1) // itens_por_pagina) + 1
             pagina_atual = 0
 
@@ -482,19 +482,25 @@ def itens_esgotados():
 
 def menu():
     criar_planilhas()
+    df = pd.read_csv("./Planilhas/Estoque.csv")
+    df['VALOR TOTAL'] = df['VALOR UN'] * df['QUANTIDADE']
+    df.to_csv("./Planilhas/Estoque.csv", index=False)
+
     while True:
-        logger.debug("\n---------[ GESTÃO DE ALMOXARIFADO ]---------\n")
+        print("\n\033[1;36;40m---------------[ GESTÃO DE ALMOXARIFADO ]---------------\033[0;37;40m")
+        print("\n\033[1;36;40m                     MENU PRINCIPAL                     \033[0;37;40m\n")
         print("\033[1;36;40m[1]\033[0;37;40m Cadastrar produto no estoque")
         print("\033[1;36;40m[2]\033[0;37;40m Registrar entrada de produto")
         print("\033[1;36;40m[3]\033[0;37;40m Registrar saída de produto")
         print("\033[1;36;40m[4]\033[0;37;40m Exibir relatório de estoque")
-        print("\033[1;36;40m[5]\033[0;37;40m Exportar planilhas para Excel")
-        print("\033[1;36;40m[6]\033[0;37;40m Editar produto no estoque")
-        print("\033[1;36;40m[7]\033[0;37;40m Pesquisar produto no estoque")
-        print("\033[1;36;40m[8]\033[0;37;40m Excluir produto do estoque")
-        print("\033[1;36;40m[9]\033[0;37;40m Exportar itens esgotados")
+        print("\033[1;36;40m[5]\033[0;37;40m Pesquisar produto no estoque")
+        print("\033[1;36;40m[6]\033[0;37;40m Exportar planilhas para Excel")
+        print("\033[1;36;40m[7]\033[0;37;40m Exportar itens esgotados")
+        print("\033[1;36;40m[8]\033[0;37;40m Editar produto no estoque")
+        print("\033[1;36;40m[9]\033[0;37;40m Excluir produto do estoque")
         print("\033[1;31;40m[0]\033[0;37;40m Sair\n")
-        logger.debug("--------------------------------------------\n")
+        logger.info("Use o aplicativo em tela cheia para melhor visualização.\n")
+        print("\033[1;36;40m--------------------------------------------------------\033[0;37;40m\n")
         opcao = input("> Escolha uma opção: ")
         print()
 
@@ -508,15 +514,15 @@ def menu():
             elif opcao == "4":
                 exibir_relatorio()
             elif opcao == "5":
-                exportar_para_excel()
-            elif opcao == "6":
-                editar_produto()
-            elif opcao == "7":
                 pesquisar_produto()
-            elif opcao == "8":
-                excluir_produto()
-            elif opcao == "9":
+            elif opcao == "6":
+                exportar_para_excel()
+            elif opcao == "7":
                 itens_esgotados()
+            elif opcao == "8":
+                editar_produto()
+            elif opcao == "9":
+                excluir_produto()
             elif opcao == "0":
                 print("Saindo...")
                 break
@@ -525,7 +531,7 @@ def menu():
                 print("Opção inválida!")
 
         except Exception as e:
-            print(f"Ocorreu um erro inesperado: {e}")
+            logger.critical(f"Ocorreu um erro inesperado: {e}")
 
 if __name__ == "__main__":
     menu()
