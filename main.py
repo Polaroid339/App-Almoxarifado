@@ -80,7 +80,7 @@ def exibir_relatorio():
             logger.info("\nRelatório de Estoque\n")
             print(tabulate(pagina, headers='keys', tablefmt='fancy_grid', showindex=False))
 
-            print(f"\nPágina {pagina_atual + 1} de {total_paginas}")
+            logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
             print("\n1 - Próxima página")
             print("2 - Página anterior")
             print("3 - Ir para uma página específica")
@@ -108,6 +108,7 @@ def exibir_relatorio():
             else:
                 logger.warning("\nOpção inválida! Tente novamente.")
     except FileNotFoundError:
+        os.system('cls')
         logger.warning("\nArquivo de estoque não encontrado.\n")
 
 
@@ -300,6 +301,7 @@ def editar_produto():
         os.system('cls')
         logger.info("Produto atualizado com sucesso!")
     else:
+        os.system('cls')
         logger.warning("Código do produto não encontrado.")
 
 
@@ -328,7 +330,7 @@ def pesquisar_produto():
                 logger.info("\nProdutos encontrados:\n")
                 print(tabulate(pagina, headers='keys', tablefmt='fancy_grid', showindex=False))
 
-                print(f"\nPágina {pagina_atual + 1} de {total_paginas}")
+                logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
                 print("\n1 - Próxima página")
                 print("2 - Página anterior")
                 print("3 - Ir para uma página específica")
@@ -356,8 +358,10 @@ def pesquisar_produto():
                 else:
                     logger.warning("\nOpção inválida! Tente novamente.")
         else:
+            os.system('cls')
             logger.warning("Nenhum produto encontrado com esse nome.")
     except FileNotFoundError:
+        os.system('cls')
         logger.warning("Arquivo de estoque não encontrado.")
 
 
@@ -391,6 +395,7 @@ def excluir_produto():
             os.system('cls')
             logger.warning("Operação cancelada.")
     else:
+        os.system('cls')
         logger.warning("Código do produto não encontrado.")
 
 
@@ -399,7 +404,7 @@ def excluir_produto():
 def menu():
     criar_planilhas()
     while True:
-        logger.debug("\nGESTÃO DE ALMOXARIFADO\n")
+        logger.debug("\n---------- GESTÃO DE ALMOXARIFADO ----------\n")
         print("[1] Cadastrar produto no estoque")
         print("[2] Registrar entrada de produto")
         print("[3] Registrar saída de produto")
@@ -409,6 +414,7 @@ def menu():
         print("[7] Pesquisar produto no estoque")
         print("[8] Excluir produto do estoque")
         print("[9] Sair\n")
+        logger.debug("--------------------------------------------\n")
         opcao = input("> Escolha uma opção: ")
         print()
 
