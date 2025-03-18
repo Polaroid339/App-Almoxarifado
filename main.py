@@ -68,6 +68,7 @@ def exibir_relatorio():
 
         total_produtos = len(df)
         itens_por_pagina = 10
+        total_paginas = ((total_produtos - 1) // itens_por_pagina) + 1
         pagina_atual = 0
 
         while True:
@@ -76,15 +77,14 @@ def exibir_relatorio():
             fim = inicio + itens_por_pagina
             pagina = df.iloc[inicio:fim]
 
-            print("\nRelatório de Estoque\n")
-            print(tabulate(pagina, headers='keys',
-                  tablefmt='fancy_grid', showindex=False))
+            logger.info("\nRelatório de Estoque\n")
+            print(tabulate(pagina, headers='keys', tablefmt='fancy_grid', showindex=False))
 
-            print(
-                f"\nPágina {pagina_atual + 1} de {((total_produtos - 1) // itens_por_pagina) + 1}")
+            print(f"\nPágina {pagina_atual + 1} de {total_paginas}")
             print("\n1 - Próxima página")
             print("2 - Página anterior")
-            print("3 - Voltar ao menu")
+            print("3 - Ir para uma página específica")
+            print("4 - Voltar ao menu")
 
             opcao = input("\n> Escolha uma opção: ")
 
@@ -93,6 +93,16 @@ def exibir_relatorio():
             elif opcao == "2" and pagina_atual > 0:
                 pagina_atual -= 1
             elif opcao == "3":
+                num_pagina = input(f"\n> Digite um número de página (1-{total_paginas}): ")
+                if num_pagina.isdigit():
+                    num_pagina = int(num_pagina) - 1
+                    if 0 <= num_pagina < total_paginas:
+                        pagina_atual = num_pagina
+                    else:
+                        logger.warning("\nPágina inválida! Tente novamente.")
+                else:
+                    logger.warning("\nEntrada inválida! Digite um número.")
+            elif opcao == "4":
                 os.system('cls')
                 break
             else:
@@ -306,6 +316,7 @@ def pesquisar_produto():
         if not resultado.empty:
             total_produtos = len(resultado)
             itens_por_pagina = 10
+            total_paginas = ((total_produtos - 1) // itens_por_pagina) + 1
             pagina_atual = 0
 
             while True:
@@ -317,10 +328,11 @@ def pesquisar_produto():
                 logger.info("\nProdutos encontrados:\n")
                 print(tabulate(pagina, headers='keys', tablefmt='fancy_grid', showindex=False))
 
-                print(f"\nPágina {pagina_atual + 1} de {((total_produtos - 1) // itens_por_pagina) + 1}")
+                print(f"\nPágina {pagina_atual + 1} de {total_paginas}")
                 print("\n1 - Próxima página")
                 print("2 - Página anterior")
-                print("3 - Voltar ao menu")
+                print("3 - Ir para uma página específica")
+                print("4 - Voltar ao menu")
 
                 opcao = input("\n> Escolha uma opção: ")
 
@@ -329,6 +341,16 @@ def pesquisar_produto():
                 elif opcao == "2" and pagina_atual > 0:
                     pagina_atual -= 1
                 elif opcao == "3":
+                    num_pagina = input(f"\n> Digite um número de página (1-{total_paginas}): ")
+                    if num_pagina.isdigit():
+                        num_pagina = int(num_pagina) - 1
+                        if 0 <= num_pagina < total_paginas:
+                            pagina_atual = num_pagina
+                        else:
+                            logger.warning("\nPágina inválida! Tente novamente.")
+                    else:
+                        logger.warning("\nEntrada inválida! Digite um número.")
+                elif opcao == "4":
                     os.system('cls')
                     break
                 else:
