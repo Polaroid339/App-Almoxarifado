@@ -317,7 +317,6 @@ def editar_produto():
 # Função para pesquisar um produto no estoque
 
 def pesquisar_produto():
-    os.system('cls')
     nome_busca = input(
         "> Digite o nome do produto para buscar: ").strip().upper()
 
@@ -375,6 +374,7 @@ def pesquisar_produto():
                 elif opcao == "5":
                     registrar_saida()
                 elif opcao == "6":
+                    os.system('cls')
                     pesquisar_produto()
                 elif opcao == "7":
                     os.system('cls')
@@ -489,17 +489,17 @@ def menu():
     while True:
         print("\n\033[1;36;40m---------------[ GESTÃO DE ALMOXARIFADO ]---------------\033[0;37;40m")
         print("\n\033[1;36;40m                     MENU PRINCIPAL                     \033[0;37;40m\n")
-        print("\033[1;36;40m[1]\033[0;37;40m Cadastrar produto no estoque")
-        print("\033[1;36;40m[2]\033[0;37;40m Registrar entrada de produto")
-        print("\033[1;36;40m[3]\033[0;37;40m Registrar saída de produto")
-        print("\033[1;36;40m[4]\033[0;37;40m Exibir relatório de estoque")
-        print("\033[1;36;40m[5]\033[0;37;40m Pesquisar produto no estoque")
-        print("\033[1;36;40m[6]\033[0;37;40m Exportar planilhas para Excel")
-        print("\033[1;36;40m[7]\033[0;37;40m Exportar itens esgotados")
-        print("\033[1;36;40m[8]\033[0;37;40m Editar produto no estoque")
-        print("\033[1;36;40m[9]\033[0;37;40m Excluir produto do estoque")
-        print("\033[1;31;40m[0]\033[0;37;40m Sair\n")
-        logger.info("Use o aplicativo em tela cheia para melhor visualização.\n")
+        print("           \033[1;36;40m[1]\033[0;37;40m--Cadastrar produto no estoque")
+        print("           \033[1;36;40m[2]\033[0;37;40m--Registrar entrada de produto")
+        print("           \033[1;36;40m[3]\033[0;37;40m----Registrar saída de produto")
+        print("           \033[1;36;40m[4]\033[0;37;40m---Exibir relatório de estoque")
+        print("           \033[1;36;40m[5]\033[0;37;40m--Pesquisar produto no estoque")
+        print("           \033[1;36;40m[6]\033[0;37;40m-Exportar planilhas para Excel")
+        print("           \033[1;36;40m[7]\033[0;37;40m------Exportar itens esgotados")
+        print("           \033[1;36;40m[8]\033[0;37;40m-----Editar produto no estoque")
+        print("           \033[1;36;40m[9]\033[0;37;40m----Excluir produto do estoque")
+        print("           \033[1;31;40m[0]\033[0;37;40m--------------------------Sair\n")
+        logger.warning("Use o aplicativo em tela cheia para melhor visualização.\n")
         print("\033[1;36;40m--------------------------------------------------------\033[0;37;40m\n")
         opcao = input("> Escolha uma opção: ")
         print()
