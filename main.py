@@ -84,7 +84,9 @@ def exibir_relatorio():
             print("\n1 - Próxima página")
             print("2 - Página anterior")
             print("3 - Ir para uma página específica")
-            print("4 - Voltar ao menu")
+            print("4 - Registrar entrada de produto")
+            print("5 - Registrar saída de produto")
+            print("6 - Voltar ao menu")
 
             opcao = input("\n> Escolha uma opção: ")
 
@@ -103,6 +105,10 @@ def exibir_relatorio():
                 else:
                     logger.warning("\nEntrada inválida! Digite um número.")
             elif opcao == "4":
+                registrar_entrada()
+            elif opcao == "5":
+                registrar_saida()
+            elif opcao == "6":
                 os.system('cls')
                 break
             else:
@@ -334,7 +340,9 @@ def pesquisar_produto():
                 print("\n1 - Próxima página")
                 print("2 - Página anterior")
                 print("3 - Ir para uma página específica")
-                print("4 - Voltar ao menu")
+                print("4 - Registrar entrada de produto")
+                print("5 - Registrar saída de produto")
+                print("6 - Voltar ao menu")
 
                 opcao = input("\n> Escolha uma opção: ")
 
@@ -352,7 +360,12 @@ def pesquisar_produto():
                             logger.warning("\nPágina inválida! Tente novamente.")
                     else:
                         logger.warning("\nEntrada inválida! Digite um número.")
+                        
                 elif opcao == "4":
+                    registrar_entrada()
+                elif opcao == "5":
+                    registrar_saida()
+                elif opcao == "6":
                     os.system('cls')
                     break
                 else:
