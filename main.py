@@ -34,15 +34,23 @@ def criar_planilhas():
             with open(arquivo, "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
                 writer.writerow(colunas[nome])
-    logger.warning("\nPlanilhas criadas/verificadas com sucesso!")
 
 
 # Funções para entrada de dados
 
+def inputm(mensagem):
+    entrada = input(mensagem).strip().upper()
+    if entrada == "MENU":
+        os.system('cls')
+        menu()
+        return None
+    return entrada
+
+
 def entrada_inteiro(mensagem):
     while True:
         try:
-            return int(input(mensagem))
+            return int(inputm(mensagem))
         except ValueError:
             logger.warning("Erro! Digite um número inteiro válido.")
 
@@ -50,7 +58,7 @@ def entrada_inteiro(mensagem):
 def entrada_float(mensagem):
     while True:
         try:
-            return float(input(mensagem))
+            return float(inputm(mensagem))
         except ValueError:
             logger.warning("Erro! Digite um número decimal válido.")
 
@@ -89,14 +97,14 @@ def exibir_relatorio():
             print("5 - Registrar saída de produto")
             print("6 - Voltar ao menu")
 
-            opcao = input("\n> Escolha uma opção: ")
+            opcao = inputm("\n> Escolha uma opção: ")
 
             if opcao == "1" and fim < total_produtos:
                 pagina_atual += 1
             elif opcao == "2" and pagina_atual > 0:
                 pagina_atual -= 1
             elif opcao == "3":
-                num_pagina = input(
+                num_pagina = inputm(
                     f"\n> Digite um número de página (1-{total_paginas}): ")
                 if num_pagina.isdigit():
                     num_pagina = int(num_pagina) - 1
@@ -187,13 +195,13 @@ def atualizar_estoque(codigo, nova_quantidade):
 
 def cadastrar_estoque():
     codigo = obter_proximo_codigo()
-    descricao = input("> Descrição do produto: ").upper()
+    descricao = inputm("> Descrição do produto: ").upper()
     quantidade = entrada_inteiro("> Quantidade: ")
     valor_un = entrada_float("> Valor unitário (R$): ")
-    localizacao = input("> Localização do produto: ").upper()
+    localizacao = inputm("> Localização do produto: ").upper()
     data = datetime.now().strftime("%H:%M %d/%m/%Y")
 
-    confirmacao = input(
+    confirmacao = inputm(
         "> Deseja cadastrar este produto? (S/N): ").strip().upper()
     if confirmacao == "S":
         valor_total = quantidade * valor_un
@@ -212,13 +220,13 @@ def cadastrar_estoque():
 # Função para registrar entrada de produto
 
 def registrar_entrada():
-    codigo = input("> Código do produto: ")
+    codigo = inputm("> Código do produto: ")
     print()
     produto = buscar_produto(codigo)
 
     if produto:
         print(f"Produto encontrado: {produto[1]}")
-        confirmacao = input(
+        confirmacao = inputm(
             "> Deseja registrar entrada neste produto? (S/N): ").strip().upper()
         if confirmacao == "S":
             quantidade_adicionada = entrada_inteiro(
@@ -245,13 +253,13 @@ def registrar_entrada():
 # Função para registrar saída de produto
 
 def registrar_saida():
-    codigo = input("> Código do produto: ")
+    codigo = inputm("> Código do produto: ")
     print()
     produto = buscar_produto(codigo)
 
     if produto:
         print(f"Produto encontrado: {produto[1]}")
-        confirmacao = input(
+        confirmacao = inputm(
             "> Deseja dar saída neste produto? (S/N): ").strip().upper()
         if confirmacao == "S":
             quantidade_retirada = entrada_inteiro("> Quantidade retirada: ")
@@ -259,7 +267,7 @@ def registrar_saida():
                 os.system('cls')
                 logger.warning("Quantidade insuficiente no estoque!")
                 return
-            solicitante = input("> Nome do solicitante: ").upper()
+            solicitante = inputm("> Nome do solicitante: ").upper()
             nova_quantidade = int(produto[4]) - quantidade_retirada
             data = datetime.now().strftime("%H:%M %d/%m/%Y")
 
@@ -282,17 +290,17 @@ def registrar_saida():
 # Função para editar um produto no estoque
 
 def editar_produto():
-    codigo = input("> Código do produto a ser editado: ")
+    codigo = inputm("> Código do produto a ser editado: ")
     print()
     produto = buscar_produto(codigo)
 
     if produto:
         print(f"Produto encontrado: {produto}\n")
-        nova_descricao = input(
+        nova_descricao = inputm(
             f"> Nova descrição ({produto[1]}): ").upper() or produto[1]
-        novo_valor = entrada_float(
-            f"> Novo valor unitário ({produto[2]}): ") or produto[2]
-        nova_localizacao = input(
+        novo_valor = float(inputm(
+            f"> Novo valor unitário ({produto[2]}): ")) or produto[2]
+        nova_localizacao = inputm(
             f"> Nova localização ({produto[6]}): ").upper() or produto[6]
 
         with open(arquivos["estoque"], "r", encoding="utf-8") as f:
@@ -317,14 +325,17 @@ def editar_produto():
 # Função para pesquisar um produto no estoque
 
 def pesquisar_produto():
-    nome_busca = input(
-        "> Digite o nome do produto para buscar: ").strip().upper()
+    nome_busca = inputm(
+        "> Pesquisar produto (COD; DES; LOC; DAT): ").strip().upper()
 
     try:
         df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
-        resultado = df[df["DESCRICAO"].str.contains(
-            nome_busca, na=False, case=False)]
-
+        resultado = df[
+            df["CODIGO"].astype(str).str.contains(nome_busca, na=False, case=False) |
+            df["DESCRICAO"].str.contains(nome_busca, na=False, case=False) |
+            df["LOCALIZACAO"].str.contains(nome_busca, na=False, case=False) |
+            df["DATA"].str.contains(nome_busca, na=False, case=False)
+        ]
         if not resultado.empty:
             total_produtos = len(resultado)
             itens_por_pagina = 20
@@ -350,14 +361,14 @@ def pesquisar_produto():
                 print("6 - Pesquisar outro produto")
                 print("7 - Voltar ao menu")
 
-                opcao = input("\n> Escolha uma opção: ")
+                opcao = inputm("\n> Escolha uma opção: ")
 
                 if opcao == "1" and fim < total_produtos:
                     pagina_atual += 1
                 elif opcao == "2" and pagina_atual > 0:
                     pagina_atual -= 1
                 elif opcao == "3":
-                    num_pagina = input(
+                    num_pagina = inputm(
                         f"\n> Digite um número de página (1-{total_paginas}): ")
                     if num_pagina.isdigit():
                         num_pagina = int(num_pagina) - 1
@@ -392,7 +403,7 @@ def pesquisar_produto():
 # Função para excluir um produto do estoque
 
 def excluir_produto():
-    codigo = input("> Código do produto a ser excluído: ").strip()
+    codigo = inputm("> Código do produto a ser excluído: ").strip()
     print()
     produto = buscar_produto(codigo)
 
@@ -400,7 +411,7 @@ def excluir_produto():
         print(f"Produto encontrado: {produto[1]}")
         logger.error(
             "Excluir produtos não é recomendado, pois desordena a ordem dos códigos.")
-        confirmacao = input(
+        confirmacao = inputm(
             "> Tem certeza que deseja excluir este produto? (S/N): ").strip().upper()
 
         if confirmacao == "S":
@@ -448,7 +459,7 @@ def itens_esgotados():
         print(tabulate(faltantes[["CODIGO", "DESCRICAO"]],
               headers='keys', tablefmt='fancy_grid', showindex=False))
         print()
-        confirmacao = input(
+        confirmacao = inputm(
             "> Deseja exportar os itens esgotados? (S/N): ").strip().upper()
         if confirmacao == "S":
 
@@ -487,21 +498,22 @@ def menu():
     df.to_csv("./Planilhas/Estoque.csv", index=False)
 
     while True:
-        print("\n\033[1;36;40m---------------[ GESTÃO DE ALMOXARIFADO ]---------------\033[0;37;40m")
-        print("\n\033[1;36;40m                     MENU PRINCIPAL                     \033[0;37;40m\n")
-        print("           \033[1;36;40m[1]\033[0;37;40m--Cadastrar produto no estoque")
-        print("           \033[1;36;40m[2]\033[0;37;40m--Registrar entrada de produto")
-        print("           \033[1;36;40m[3]\033[0;37;40m----Registrar saída de produto")
-        print("           \033[1;36;40m[4]\033[0;37;40m---Exibir relatório de estoque")
-        print("           \033[1;36;40m[5]\033[0;37;40m--Pesquisar produto no estoque")
-        print("           \033[1;36;40m[6]\033[0;37;40m-Exportar planilhas para Excel")
-        print("           \033[1;36;40m[7]\033[0;37;40m------Exportar itens esgotados")
-        print("           \033[1;36;40m[8]\033[0;37;40m-----Editar produto no estoque")
-        print("           \033[1;36;40m[9]\033[0;37;40m----Excluir produto do estoque")
-        print("           \033[1;31;40m[0]\033[0;37;40m--------------------------Sair\n")
-        logger.warning("Use o aplicativo em tela cheia para melhor visualização.\n")
-        print("\033[1;36;40m--------------------------------------------------------\033[0;37;40m\n")
-        opcao = input("> Escolha uma opção: ")
+        print("\n\033[1;36;40m--------------------[ GESTÃO DE ALMOXARIFADO ]--------------------\033[0;37;40m")
+        print("\n\033[1;36;40m                          MENU PRINCIPAL                     \033[0;37;40m\n")
+        print("                \033[1;36;40m[1]\033[0;37;40m--Cadastrar produto no estoque")
+        print("                \033[1;36;40m[2]\033[0;37;40m--Registrar entrada de produto")
+        print("                \033[1;36;40m[3]\033[0;37;40m----Registrar saída de produto")
+        print("                \033[1;36;40m[4]\033[0;37;40m---Exibir relatório de estoque")
+        print("                \033[1;36;40m[5]\033[0;37;40m--Pesquisar produto no estoque")
+        print("                \033[1;36;40m[6]\033[0;37;40m-Exportar planilhas para Excel")
+        print("                \033[1;36;40m[7]\033[0;37;40m------Exportar itens esgotados")
+        print("                \033[1;36;40m[8]\033[0;37;40m-----Editar produto no estoque")
+        print("                \033[1;36;40m[9]\033[0;37;40m----Excluir produto do estoque")
+        print("                \033[1;31;40m[0]\033[0;37;40m--------------------------Sair\n")
+        logger.warning("     Use o aplicativo em tela cheia para melhor visualização.")
+        logger.warning("Digite 'menu' a qualquer momento para retornar ao menu principal.\n")
+        print("\033[1;36;40m------------------------------------------------------------------\033[0;37;40m\n")
+        opcao = inputm("> Escolha uma opção: ")
         print()
 
         try:
@@ -531,6 +543,7 @@ def menu():
                 print("Opção inválida!")
 
         except Exception as e:
+            os.system('cls')
             logger.critical(f"Ocorreu um erro inesperado: {e}")
 
 if __name__ == "__main__":
