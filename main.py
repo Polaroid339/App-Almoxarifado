@@ -537,3 +537,4 @@ if __name__ == "__main__":
     menu()
 
 # python -m PyInstaller --onefile --name=Almoxarifado main.py
+ 
