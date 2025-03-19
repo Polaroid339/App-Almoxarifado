@@ -287,7 +287,7 @@ def editar_produto():
     produto = buscar_produto(codigo)
 
     if produto:
-        print(f"Produto encontrado: {produto}")
+        print(f"Produto encontrado: {produto}\n")
         nova_descricao = input(
             f"> Nova descrição ({produto[1]}): ").upper() or produto[1]
         novo_valor = entrada_float(
