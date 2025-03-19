@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime
 from tabulate import tabulate
 from formatter import logger
+import shutil
 
 """
 Gestão de Almoxarifado
@@ -493,26 +494,35 @@ def itens_esgotados():
 
 def menu():
     criar_planilhas()
+    if os.path.exists("./Planilhas/Estoque.csv"):
+        shutil.copy("./Planilhas/Estoque.csv", "./Planilhas/Estoque_backup.csv")
+
     df = pd.read_csv("./Planilhas/Estoque.csv")
     df['VALOR TOTAL'] = df['VALOR UN'] * df['QUANTIDADE']
     df.to_csv("./Planilhas/Estoque.csv", index=False)
 
     while True:
-        print("\n\033[1;36;40m--------------------[ GESTÃO DE ALMOXARIFADO ]--------------------\033[0;37;40m")
-        print("\n\033[1;36;40m                          MENU PRINCIPAL                     \033[0;37;40m\n")
-        print("                \033[1;36;40m[1]\033[0;37;40m--Cadastrar produto no estoque")
-        print("                \033[1;36;40m[2]\033[0;37;40m--Registrar entrada de produto")
-        print("                \033[1;36;40m[3]\033[0;37;40m----Registrar saída de produto")
-        print("                \033[1;36;40m[4]\033[0;37;40m---Exibir relatório de estoque")
-        print("                \033[1;36;40m[5]\033[0;37;40m--Pesquisar produto no estoque")
-        print("                \033[1;36;40m[6]\033[0;37;40m-Exportar planilhas para Excel")
-        print("                \033[1;36;40m[7]\033[0;37;40m------Exportar itens esgotados")
-        print("                \033[1;36;40m[8]\033[0;37;40m-----Editar produto no estoque")
-        print("                \033[1;36;40m[9]\033[0;37;40m----Excluir produto do estoque")
-        print("                \033[1;31;40m[0]\033[0;37;40m--------------------------Sair\n")
-        logger.warning("     Use o aplicativo em tela cheia para melhor visualização.")
-        logger.warning("Digite 'menu' a qualquer momento para retornar ao menu principal.\n")
-        print("\033[1;36;40m------------------------------------------------------------------\033[0;37;40m\n")
+        print("\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m")
+        print("\033[1;36;40m|                   [ GESTÃO DE ALMOXARIFADO ]                   |\033[0;37;40m")
+        print("\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m")
+        print("\033[1;36;40m|                                                                |\033[0;37;40m")
+        print("\033[1;36;40m|                         MENU PRINCIPAL                         |\033[0;37;40m")
+        print("\033[1;36;40m|                                                                |\033[0;37;40m")
+        print("\033[1;36;40m|               [1]\033[0;37;40m..Cadastrar produto no estoque                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|               [2]\033[0;37;40m..Registrar entrada de produto                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|               [3]\033[0;37;40m....Registrar saída de produto                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|               [4]\033[0;37;40m...Exibir relatório de estoque                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|               [5]\033[0;37;40m..Pesquisar produto no estoque                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|               [6]\033[0;37;40m.Exportar planilhas para Excel                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|               [7]\033[0;37;40m......Exportar itens esgotados                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|               [8]\033[0;37;40m.....Editar produto no estoque                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|               [9]\033[0;37;40m....Excluir produto do estoque                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|               \033[1;31;40m[0]\033[0;37;40m..........................Sair                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|                                                                |\033[0;37;40m")
+        print("\033[1;36;40m|\033[0;37;40m              Digite 'menu' a qualquer momento para             \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|\033[0;37;40m                   voltar ao menu principal.                    \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|                                                                |\033[0;37;40m")
+        print("\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m\n")
         opcao = inputm("> Escolha uma opção: ")
         print()
 
