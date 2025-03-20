@@ -12,6 +12,7 @@ Sistema para controle de estoque e movimentações de produtos
 """
 
 # Definição dos arquivos CSV
+
 arquivos = {
     "estoque": "./Planilhas/Estoque.csv",
     "entrada": "./Planilhas/Entrada.csv",
@@ -94,16 +95,18 @@ def exibir_relatorio():
             print("\n1 - Próxima página")
             print("2 - Página anterior")
             print("3 - Ir para uma página específica")
-            print("4 - Registrar entrada de produto")
-            print("5 - Registrar saída de produto")
+            print("4 - Ver registros de entradas")
+            print("5 - Ver registros de saídas")
             print("6 - Voltar ao menu")
 
             opcao = inputm("\n> Escolha uma opção: ")
 
             if opcao == "1" and fim < total_produtos:
                 pagina_atual += 1
+
             elif opcao == "2" and pagina_atual > 0:
                 pagina_atual -= 1
+
             elif opcao == "3":
                 num_pagina = inputm(
                     f"\n> Digite um número de página (1-{total_paginas}): ")
@@ -115,10 +118,141 @@ def exibir_relatorio():
                         logger.warning("\nPágina inválida! Tente novamente.")
                 else:
                     logger.warning("\nEntrada inválida! Digite um número.")
+
             elif opcao == "4":
-                registrar_entrada()
+                os.system('cls')
+                try:
+                    df = pd.read_csv(arquivos["entrada"], encoding="utf-8")
+
+                    if df.empty:
+                        logger.warning("\nEntradas está vazio!\n")
+                        return
+
+                    total_produtos = len(df)
+                    itens_por_pagina = 20
+                    total_paginas = ((total_produtos - 1) // itens_por_pagina) + 1
+                    pagina_atual = 0
+
+                    while True:
+                        os.system('cls')
+                        inicio = pagina_atual * itens_por_pagina
+                        fim = inicio + itens_por_pagina
+                        pagina = df.iloc[inicio:fim]
+
+                        logger.info("\nRelatório de Entradas\n")
+                        print(tabulate(pagina, headers='keys',
+                            tablefmt='fancy_grid', showindex=False))
+                        
+                        logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
+                        print("\n1 - Próxima página")
+                        print("2 - Página anterior")
+                        print("3 - Ir para uma página específica")
+                        print("4 - Voltar")
+                        
+                        opcao = inputm("\n> Escolha uma opção: ")
+                        
+                        if opcao == "1" and fim < total_produtos:
+                            pagina_atual += 1
+
+                        elif opcao == "2" and pagina_atual > 0:
+                            pagina_atual -= 1
+
+                        elif opcao == "3":
+                            num_pagina = inputm(
+                                f"\n> Digite um número de página (1-{total_paginas}): ")
+                            if num_pagina.isdigit():
+                                num_pagina = int(num_pagina) - 1
+                                if 0 <= num_pagina < total_paginas:
+                                    pagina_atual = num_pagina
+                                else:
+                                    logger.warning("\nPágina inválida! Tente novamente.")
+                            else:
+                                logger.warning("\nEntrada inválida! Digite um número.")
+                                
+                        elif opcao == "4":
+                            df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
+
+                            if df.empty:
+                                logger.warning("\nO estoque está vazio!\n")
+                                return
+
+                            total_produtos = len(df)
+                            itens_por_pagina = 20
+                            total_paginas = ((total_produtos - 1) // itens_por_pagina) + 1
+                            pagina_atual = 0
+                            break
+                                                
+                except FileNotFoundError:
+                    os.system('cls')
+                    logger.warning("\nArquivo de entrada não encontrado.")
+
             elif opcao == "5":
-                registrar_saida()
+                os.system('cls')
+                try:
+                    df = pd.read_csv(arquivos["saida"], encoding="utf-8")
+
+                    if df.empty:
+                        logger.warning("\nSaidas está vazio!\n")
+                        return
+
+                    total_produtos = len(df)
+                    itens_por_pagina = 20
+                    total_paginas = ((total_produtos - 1) // itens_por_pagina) + 1
+                    pagina_atual = 0
+
+                    while True:
+                        os.system('cls')
+                        inicio = pagina_atual * itens_por_pagina
+                        fim = inicio + itens_por_pagina
+                        pagina = df.iloc[inicio:fim]
+
+                        logger.info("\nRelatório de Saidas\n")
+                        print(tabulate(pagina, headers='keys',
+                            tablefmt='fancy_grid', showindex=False))
+                        
+                        logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
+                        print("\n1 - Próxima página")
+                        print("2 - Página anterior")
+                        print("3 - Ir para uma página específica")
+                        print("4 - Voltar")
+                        
+                        opcao = inputm("\n> Escolha uma opção: ")
+                        
+                        if opcao == "1" and fim < total_produtos:
+                            pagina_atual += 1
+
+                        elif opcao == "2" and pagina_atual > 0:
+                            pagina_atual -= 1
+
+                        elif opcao == "3":
+                            num_pagina = inputm(
+                                f"\n> Digite um número de página (1-{total_paginas}): ")
+                            if num_pagina.isdigit():
+                                num_pagina = int(num_pagina) - 1
+                                if 0 <= num_pagina < total_paginas:
+                                    pagina_atual = num_pagina
+                                else:
+                                    logger.warning("\nPágina inválida! Tente novamente.")
+                            else:
+                                logger.warning("\nEntrada inválida! Digite um número.")
+                                
+                        elif opcao == "4":
+                            df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
+
+                            if df.empty:
+                                logger.warning("\nO estoque está vazio!\n")
+                                return
+
+                            total_produtos = len(df)
+                            itens_por_pagina = 20
+                            total_paginas = ((total_produtos - 1) // itens_por_pagina) + 1
+                            pagina_atual = 0
+                            break
+
+                except FileNotFoundError:
+                    os.system('cls')
+                    logger.warning("\nArquivo de entrada não encontrado.")
+                                              
             elif opcao == "6":
                 os.system('cls')
                 break
@@ -126,7 +260,7 @@ def exibir_relatorio():
                 logger.warning("\nOpção inválida! Tente novamente.")
     except FileNotFoundError:
         os.system('cls')
-        logger.warning("\nArquivo de estoque não encontrado.\n")
+        logger.warning("\nArquivo de estoque não encontrado.")
 
 
 # Função para exportar as planilhas para Excel
@@ -360,7 +494,8 @@ def pesquisar_produto():
                 print("4 - Registrar entrada de produto")
                 print("5 - Registrar saída de produto")
                 print("6 - Pesquisar outro produto")
-                print("7 - Voltar ao menu")
+                print("7 - Editar produto") 
+                print("8 - Voltar ao menu") 
 
                 opcao = inputm("\n> Escolha uma opção: ")
 
@@ -387,8 +522,11 @@ def pesquisar_produto():
                     registrar_saida()
                 elif opcao == "6":
                     os.system('cls')
+                    print()
                     pesquisar_produto()
                 elif opcao == "7":
+                    editar_produto()
+                elif opcao == "8":
                     os.system('cls')
                     break
                 else:
@@ -452,7 +590,7 @@ def itens_esgotados():
         faltantes = df[df["QUANTIDADE"].astype(int) <= 0]
 
         if faltantes.empty:
-            logger.info("\nNão há produtos esgotados.\n")
+            logger.info("\nNão há produtos esgotados.")
             return
 
         # Exibir o relatório na tela
@@ -487,7 +625,7 @@ def itens_esgotados():
 
     except FileNotFoundError:
         os.system('cls')
-        logger.warning("\nArquivo de estoque não encontrado.\n")
+        logger.warning("\nArquivo de estoque não encontrado.")
 
 
 # Menu de opções
@@ -502,7 +640,7 @@ def menu():
     df.to_csv("./Planilhas/Estoque.csv", index=False)
 
     while True:
-        print("\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m")
+        print("\n\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m")
         print("\033[1;36;40m|                   [ GESTÃO DE ALMOXARIFADO ]                   |\033[0;37;40m")
         print("\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m")
         print("\033[1;36;40m|                                                                |\033[0;37;40m")
@@ -519,8 +657,8 @@ def menu():
         print("\033[1;36;40m|               [9]\033[0;37;40m....Excluir produto do estoque                \033[1;36;40m|\033[0;37;40m")
         print("\033[1;36;40m|               \033[1;31;40m[0]\033[0;37;40m..........................Sair                \033[1;36;40m|\033[0;37;40m")
         print("\033[1;36;40m|                                                                |\033[0;37;40m")
-        print("\033[1;36;40m|\033[0;37;40m              Digite 'menu' a qualquer momento para             \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|\033[0;37;40m                   voltar ao menu principal.                    \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|             Digite 'menu' a qualquer momento para              \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|                   voltar ao menu principal.                    \033[1;36;40m|\033[0;37;40m")
         print("\033[1;36;40m|                                                                |\033[0;37;40m")
         print("\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m\n")
         opcao = inputm("> Escolha uma opção: ")
