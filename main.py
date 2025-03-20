@@ -3,9 +3,8 @@ import os
 import pandas as pd
 from datetime import datetime
 from tabulate import tabulate
-from formatter import logging
+from formatter import logger
 import shutil
-import logging
 
 
 """
@@ -21,14 +20,6 @@ arquivos = {
     "saida": "./Planilhas/Saida.csv"
 }
 
-
-# Configuração do log
-
-logging.basicConfig(
-    filename="logfile.log",
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
 
 # Função para criar os arquivos CSV caso não existam
 
@@ -64,7 +55,7 @@ def entrada_inteiro(mensagem):
         try:
             return int(inputm(mensagem))
         except ValueError:
-            logging.warning("Erro! Digite um número inteiro válido.")
+            logger.warning("Erro! Digite um número inteiro válido.")
 
 
 def entrada_float(mensagem):
@@ -72,7 +63,7 @@ def entrada_float(mensagem):
         try:
             return float(inputm(mensagem))
         except ValueError:
-            logging.warning("Erro! Digite um número decimal válido.")
+            logger.warning("Erro! Digite um número decimal válido.")
 
 
 # Função para exibir relatório completo do estoque
@@ -83,7 +74,7 @@ def exibir_relatorio():
         df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
 
         if df.empty:
-            logging.warning("\nO estoque está vazio!\n")
+            logger.warning("\nO estoque está vazio!\n")
             return
 
         total_produtos = len(df)
@@ -97,11 +88,11 @@ def exibir_relatorio():
             fim = inicio + itens_por_pagina
             pagina = df.iloc[inicio:fim]
 
-            logging.info("\nRelatório de Estoque\n")
+            logger.info("\nRelatório de Estoque\n")
             print(tabulate(pagina, headers='keys',
                   tablefmt='fancy_grid', showindex=False))
 
-            logging.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
+            logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
             print("\n1 - Próxima página")
             print("2 - Página anterior")
             print("3 - Ir para uma página específica")
@@ -125,9 +116,9 @@ def exibir_relatorio():
                     if 0 <= num_pagina < total_paginas:
                         pagina_atual = num_pagina
                     else:
-                        logging.warning("\nPágina inválida! Tente novamente.")
+                        logger.warning("\nPágina inválida! Tente novamente.")
                 else:
-                    logging.warning("\nEntrada inválida! Digite um número.")
+                    logger.warning("\nEntrada inválida! Digite um número.")
 
 
             # Exibir registros de entradas
@@ -137,7 +128,7 @@ def exibir_relatorio():
                     df = pd.read_csv(arquivos["entrada"], encoding="utf-8")
 
                     if df.empty:
-                        logging.warning("\nEntradas está vazio!\n")
+                        logger.warning("\nEntradas está vazio!\n")
                         return
 
                     total_produtos = len(df)
@@ -151,11 +142,11 @@ def exibir_relatorio():
                         fim = inicio + itens_por_pagina
                         pagina = df.iloc[inicio:fim]
 
-                        logging.info("\nRelatório de Entradas\n")
+                        logger.info("\nRelatório de Entradas\n")
                         print(tabulate(pagina, headers='keys',
                             tablefmt='fancy_grid', showindex=False))
                         
-                        logging.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
+                        logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
                         print("\n1 - Próxima página")
                         print("2 - Página anterior")
                         print("3 - Ir para uma página específica")
@@ -177,15 +168,15 @@ def exibir_relatorio():
                                 if 0 <= num_pagina < total_paginas:
                                     pagina_atual = num_pagina
                                 else:
-                                    logging.warning("\nPágina inválida! Tente novamente.")
+                                    logger.warning("\nPágina inválida! Tente novamente.")
                             else:
-                                logging.warning("\nEntrada inválida! Digite um número.")
+                                logger.warning("\nEntrada inválida! Digite um número.")
                                 
                         elif opcao == "4":
                             df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
 
                             if df.empty:
-                                logging.warning("\nO estoque está vazio!\n")
+                                logger.warning("\nO estoque está vazio!\n")
                                 return
 
                             total_produtos = len(df)
@@ -196,7 +187,7 @@ def exibir_relatorio():
                                                 
                 except FileNotFoundError:
                     os.system('cls')
-                    logging.warning("\nArquivo de entrada não encontrado.")
+                    logger.warning("\nArquivo de entrada não encontrado.")
 
 
             # Exibir registros de saídas   
@@ -206,7 +197,7 @@ def exibir_relatorio():
                     df = pd.read_csv(arquivos["saida"], encoding="utf-8")
 
                     if df.empty:
-                        logging.warning("\nSaidas está vazio!\n")
+                        logger.warning("\nSaidas está vazio!\n")
                         return
 
                     total_produtos = len(df)
@@ -220,11 +211,11 @@ def exibir_relatorio():
                         fim = inicio + itens_por_pagina
                         pagina = df.iloc[inicio:fim]
 
-                        logging.info("\nRelatório de Saidas\n")
+                        logger.info("\nRelatório de Saidas\n")
                         print(tabulate(pagina, headers='keys',
                             tablefmt='fancy_grid', showindex=False))
                         
-                        logging.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
+                        logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
                         print("\n1 - Próxima página")
                         print("2 - Página anterior")
                         print("3 - Ir para uma página específica")
@@ -246,15 +237,15 @@ def exibir_relatorio():
                                 if 0 <= num_pagina < total_paginas:
                                     pagina_atual = num_pagina
                                 else:
-                                    logging.warning("\nPágina inválida! Tente novamente.")
+                                    logger.warning("\nPágina inválida! Tente novamente.")
                             else:
-                                logging.warning("\nEntrada inválida! Digite um número.")
+                                logger.warning("\nEntrada inválida! Digite um número.")
                                 
                         elif opcao == "4":
                             df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
 
                             if df.empty:
-                                logging.warning("\nO estoque está vazio!\n")
+                                logger.warning("\nO estoque está vazio!\n")
                                 return
 
                             total_produtos = len(df)
@@ -265,16 +256,16 @@ def exibir_relatorio():
 
                 except FileNotFoundError:
                     os.system('cls')
-                    logging.warning("\nArquivo de entrada não encontrado.")
+                    logger.warning("\nArquivo de entrada não encontrado.")
                                               
             elif opcao == "6":
                 os.system('cls')
                 break
             else:
-                logging.warning("\nOpção inválida! Tente novamente.")
+                logger.warning("\nOpção inválida! Tente novamente.")
     except FileNotFoundError:
         os.system('cls')
-        logging.warning("\nArquivo de estoque não encontrado.")
+        logger.warning("\nArquivo de estoque não encontrado.")
 
 
 # Função para exportar as planilhas para Excel
@@ -292,7 +283,7 @@ def exportar_para_excel():
             except FileNotFoundError:
                 print(f"Arquivo {arquivo} não encontrado.")
     os.system('cls')
-    logging.info(f"Relatórios exportados para {caminho_arquivo}")
+    logger.info(f"Relatórios exportados para {caminho_arquivo}")
 
 
 # Função para obter o próximo código disponível
@@ -360,10 +351,10 @@ def cadastrar_estoque():
             writer.writerow([codigo, descricao, valor_un,
                             valor_total, quantidade, data, localizacao])
         os.system('cls')
-        logging.info(f"Produto cadastrado no estoque com código {codigo}!")
+        logger.info(f"Produto cadastrado no estoque com código {codigo}!")
     else:
         os.system('cls')
-        logging.warning("Operação cancelada.")
+        logger.warning("Operação cancelada.")
 
 
 # Função para registrar entrada de produto
@@ -390,13 +381,13 @@ def registrar_entrada():
 
             atualizar_estoque(codigo, nova_quantidade)
             os.system('cls')
-            logging.info("Entrada registrada e estoque atualizado!")
+            logger.info("Entrada registrada e estoque atualizado!")
         else:
             os.system('cls')
-            logging.warning("Operação cancelada.")
+            logger.warning("Operação cancelada.")
     else:
         os.system('cls')
-        logging.warning("Código do produto não encontrado.")
+        logger.warning("Código do produto não encontrado.")
 
 
 # Função para registrar saída de produto
@@ -414,7 +405,7 @@ def registrar_saida():
             quantidade_retirada = entrada_inteiro("> Quantidade retirada: ")
             if quantidade_retirada > int(produto[4]):
                 os.system('cls')
-                logging.warning("Quantidade insuficiente no estoque!")
+                logger.warning("Quantidade insuficiente no estoque!")
                 return
             solicitante = inputm("> Nome do solicitante: ").upper()
             nova_quantidade = int(produto[4]) - quantidade_retirada
@@ -427,13 +418,13 @@ def registrar_saida():
 
             atualizar_estoque(codigo, nova_quantidade)
             os.system('cls')
-            logging.info("Saída registrada e estoque atualizado!")
+            logger.info("Saída registrada e estoque atualizado!")
         else:
             os.system('cls')
-            logging.warning("Operação cancelada.")
+            logger.warning("Operação cancelada.")
     else:
         os.system('cls')
-        logging.warning("Código do produto não encontrado.")
+        logger.warning("Código do produto não encontrado.")
 
 
 # Função para editar um produto no estoque
@@ -465,10 +456,10 @@ def editar_produto():
             writer.writerows(produtos)
 
         os.system('cls')
-        logging.info("Produto atualizado com sucesso!")
+        logger.info("Produto atualizado com sucesso!")
     else:
         os.system('cls')
-        logging.warning("Código do produto não encontrado.")
+        logger.warning("Código do produto não encontrado.")
 
 
 # Função para pesquisar um produto no estoque
@@ -497,11 +488,11 @@ def pesquisar_produto():
                 fim = inicio + itens_por_pagina
                 pagina = resultado.iloc[inicio:fim]
 
-                logging.info("\nProdutos encontrados:\n")
+                logger.info("\nProdutos encontrados:\n")
                 print(tabulate(pagina, headers='keys',
                       tablefmt='fancy_grid', showindex=False))
 
-                logging.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
+                logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
                 print("\n1 - Próxima página")
                 print("2 - Página anterior")
                 print("3 - Ir para uma página específica")
@@ -525,10 +516,10 @@ def pesquisar_produto():
                         if 0 <= num_pagina < total_paginas:
                             pagina_atual = num_pagina
                         else:
-                            logging.warning(
+                            logger.warning(
                                 "\nPágina inválida! Tente novamente.")
                     else:
-                        logging.warning("\nEntrada inválida! Digite um número.")
+                        logger.warning("\nEntrada inválida! Digite um número.")
 
                 elif opcao == "4":
                     registrar_entrada()
@@ -544,13 +535,13 @@ def pesquisar_produto():
                     os.system('cls')
                     break
                 else:
-                    logging.warning("\nOpção inválida! Tente novamente.")
+                    logger.warning("\nOpção inválida! Tente novamente.")
         else:
             os.system('cls')
-            logging.warning("Nenhum produto encontrado com esse nome.")
+            logger.warning("Nenhum produto encontrado com esse nome.")
     except FileNotFoundError:
         os.system('cls')
-        logging.warning("Arquivo de estoque não encontrado.")
+        logger.warning("Arquivo de estoque não encontrado.")
 
 
 # Função para excluir um produto do estoque
@@ -562,7 +553,7 @@ def excluir_produto():
 
     if produto:
         print(f"Produto encontrado: {produto[1]}")
-        logging.error(
+        logger.error(
             "Excluir produtos não é recomendado, pois desordena a ordem dos códigos.")
         confirmacao = inputm(
             "> Tem certeza que deseja excluir este produto? (S/N): ").strip().upper()
@@ -579,13 +570,13 @@ def excluir_produto():
                 writer.writerows(produtos)
 
             os.system('cls')
-            logging.info(f"Produto {produto[1]} excluído com sucesso!")
+            logger.info(f"Produto {produto[1]} excluído com sucesso!")
         else:
             os.system('cls')
-            logging.warning("Operação cancelada.")
+            logger.warning("Operação cancelada.")
     else:
         os.system('cls')
-        logging.warning("Código do produto não encontrado.")
+        logger.warning("Código do produto não encontrado.")
 
     # Função para exibir relatório de produtos esgotados e exportá-los para um arquivo .txt
 
@@ -597,18 +588,18 @@ def itens_esgotados():
         df = pd.read_csv(arquivos["estoque"], encoding="utf-8")
 
         if df.empty:
-            logging.warning("\nO estoque está vazio!\n")
+            logger.warning("\nO estoque está vazio!\n")
             return
 
         # Filtrar produtos com quantidade igual ou menor que zero
         faltantes = df[df["QUANTIDADE"].astype(int) <= 0]
 
         if faltantes.empty:
-            logging.info("\nNão há produtos esgotados.")
+            logger.info("\nNão há produtos esgotados.")
             return
 
         # Exibir o relatório na tela
-        logging.info("\nProdutos esgotados do estoque:\n")
+        logger.info("\nProdutos esgotados do estoque:\n")
         print(tabulate(faltantes[["CODIGO", "DESCRICAO"]],
               headers='keys', tablefmt='fancy_grid', showindex=False))
         print()
@@ -631,15 +622,15 @@ def itens_esgotados():
                 f.write("-" * 40 + "\n")
 
             os.system('cls')
-            logging.info(
+            logger.info(
                 f"Relatório de produtos exgotados exportado para {caminho_arquivo}")
         else:
             os.system('cls')
-            logging.warning("Operação cancelada.")
+            logger.warning("Operação cancelada.")
 
     except FileNotFoundError:
         os.system('cls')
-        logging.warning("\nArquivo de estoque não encontrado.")
+        logger.warning("\nArquivo de estoque não encontrado.")
 
 
 # Menu de opções
@@ -706,7 +697,7 @@ def menu():
 
         except Exception as e:
             os.system('cls')
-            logging.critical(f"Ocorreu um erro inesperado: {e}")
+            logger.critical(f"Ocorreu um erro inesperado: {e}")
 
 if __name__ == "__main__":
     menu()
