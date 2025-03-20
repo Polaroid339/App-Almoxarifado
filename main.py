@@ -374,10 +374,28 @@ def registrar_entrada():
             nova_quantidade = int(produto[4]) + quantidade_adicionada
             data = datetime.now().strftime("%H:%M %d/%m/%Y")
 
+            # Buscar o valor unitário na planilha de estoque
+            with open(arquivos["estoque"], "r", encoding="utf-8") as f:
+                reader = csv.reader(f)
+                linhas = list(reader)
+
+            valor_un = None
+            for linha in linhas:
+                if linha[0] == codigo:
+                    valor_un = float(linha[2])
+                    break
+            
+            if valor_un is None:
+                os.system('cls')
+                logger.error("Erro: Código do produto não encontrado no estoque!")
+                return
+
+            valor_total = valor_un * quantidade_adicionada
+
+            # Registrar entrada no arquivo de entrada
             with open(arquivos["entrada"], "a", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow([codigo, produto[1], quantidade_adicionada, produto[2], float(
-                    produto[2]) * quantidade_adicionada, data])
+                writer.writerow([codigo, produto[1], quantidade_adicionada, valor_un, valor_total, data])
 
             atualizar_estoque(codigo, nova_quantidade)
             os.system('cls')
@@ -388,6 +406,7 @@ def registrar_entrada():
     else:
         os.system('cls')
         logger.warning("Código do produto não encontrado.")
+
 
 
 # Função para registrar saída de produto
@@ -702,5 +721,5 @@ def menu():
 if __name__ == "__main__":
     menu()
 
-# python -m PyInstaller --onefile --name=Almoxarifado main.py
+# python -m PyInstaller --onefile --name=Almoxarifado --icon=favicon.ico main.py 
  
