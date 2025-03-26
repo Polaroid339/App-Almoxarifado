@@ -98,7 +98,7 @@ def exibir_relatorio():
             print("3 - Ir para uma página específica")
             print("4 - Ver registros de entradas")
             print("5 - Ver registros de saídas")
-            print("6 - Voltar ao menu")
+            print("6 - Voltar")
 
             opcao = inputm("\n> Escolha uma opção: ")
 
@@ -400,13 +400,13 @@ def registrar_entrada():
             atualizar_estoque(codigo, nova_quantidade)
             os.system('cls')
             logger.info("Entrada registrada e estoque atualizado!")
+            logger.info(f"{produto[1]} | Quantidade: {nova_quantidade}") 
         else:
             os.system('cls')
             logger.warning("Operação cancelada.")
     else:
         os.system('cls')
         logger.warning("Código do produto não encontrado.")
-
 
 
 # Função para registrar saída de produto
@@ -438,6 +438,7 @@ def registrar_saida():
             atualizar_estoque(codigo, nova_quantidade)
             os.system('cls')
             logger.info("Saída registrada e estoque atualizado!")
+            logger.info(f"{produto[1]} | Quantidade: {nova_quantidade}")
         else:
             os.system('cls')
             logger.warning("Operação cancelada.")
@@ -665,21 +666,21 @@ def menu():
 
     while True:
         print("\n\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m")
-        print("\033[1;36;40m|                   [ GESTÃO DE ALMOXARIFADO ]                   |\033[0;37;40m")
+        print("\033[1;36;40m|[[[[[[[[[[[[[[[[[[[[ GESTÃO DE ALMOXARIFADO ]]]]]]]]]]]]]]]]]]]]|\033[0;37;40m")
         print("\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m")
         print("\033[1;36;40m|                                                                |\033[0;37;40m")
         print("\033[1;36;40m|                         MENU PRINCIPAL                         |\033[0;37;40m")
         print("\033[1;36;40m|                                                                |\033[0;37;40m")
-        print("\033[1;36;40m|               [1]\033[0;37;40m..Cadastrar produto no estoque                \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|               [2]\033[0;37;40m..Registrar entrada de produto                \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|               [3]\033[0;37;40m....Registrar saída de produto                \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|               [4]\033[0;37;40m...Exibir relatório de estoque                \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|               [5]\033[0;37;40m..Pesquisar produto no estoque                \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|               [6]\033[0;37;40m.Exportar planilhas para Excel                \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|               [7]\033[0;37;40m......Exportar itens esgotados                \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|               [8]\033[0;37;40m.....Editar produto no estoque                \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|               [9]\033[0;37;40m....Excluir produto do estoque                \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|               \033[1;31;40m[0]\033[0;37;40m..........................Sair                \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              [1]\033[0;37;40m[..Cadastrar produto no estoque]               \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              [2]\033[0;37;40m[..Registrar entrada de produto]               \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              [3]\033[0;37;40m[....Registrar saída de produto]               \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              [4]\033[0;37;40m[...Exibir relatório de estoque]               \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              [5]\033[0;37;40m[..Pesquisar produto no estoque]               \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              [6]\033[0;37;40m[.Exportar planilhas para Excel]               \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              [7]\033[0;37;40m[......Exportar itens esgotados]               \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              [8]\033[0;37;40m[.....Editar produto no estoque]               \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              [9]\033[0;37;40m[....Excluir produto do estoque]               \033[1;36;40m|\033[0;37;40m")
+        print("\033[1;36;40m|              \033[1;31;40m[0]\033[0;37;40m[..........................Sair]               \033[1;36;40m|\033[0;37;40m")
         print("\033[1;36;40m|                                                                |\033[0;37;40m")
         print("\033[1;36;40m|             Digite 'menu' a qualquer momento para              \033[1;36;40m|\033[0;37;40m")
         print("\033[1;36;40m|                   voltar ao menu principal.                    \033[1;36;40m|\033[0;37;40m")
@@ -721,5 +722,5 @@ def menu():
 if __name__ == "__main__":
     menu()
 
-# python -m PyInstaller --onefile --name=Almoxarifado --icon=favicon.ico main.py 
+# python -m PyInstaller --onefile --name=Almoxarifado --icon=favicon.ico gestao.py 
  
