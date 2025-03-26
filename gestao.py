@@ -670,20 +670,20 @@ def menu():
     df.to_csv("./Planilhas/Estoque.csv", index=False)
 
     while True:
-        menu_options = """\n
-              [bold cyan][1][/bold cyan][bold white][..Cadastrar produto no estoque][/bold white]              
-              [bold cyan][2][/bold cyan][bold white][..Registrar entrada de produto][/bold white]               
-              [bold cyan][3][/bold cyan][bold white][....Registrar saída de produto][/bold white]               
-              [bold cyan][4][/bold cyan][bold white][...Exibir relatório de estoque][/bold white]
-              [bold cyan][5][/bold cyan][bold white][..Pesquisar produto no estoque][/bold white]
-              [bold cyan][6][/bold cyan][bold white][.Exportar planilhas para Excel][/bold white]
-              [bold cyan][7][/bold cyan][bold white][......Exportar itens esgotados][/bold white]
-              [bold cyan][8][/bold cyan][bold white][.....Editar produto no estoque][/bold white]
-              [bold cyan][9][/bold cyan][bold white][....Excluir produto do estoque][/bold white]
-              [bold red][0][/bold red][bold white][..........................Sair][/bold white]
+        menu_options = f"""\n
+{" "*39}[bold cyan][1][/bold cyan][bold white][...Cadastrar produto no estoque][/bold white]{" "*39}
+{" "*39}[bold cyan][2][/bold cyan][bold white][...Registrar entrada de produto][/bold white]
+{" "*39}[bold cyan][3][/bold cyan][bold white][.....Registrar saída de produto][/bold white]
+{" "*39}[bold cyan][4][/bold cyan][bold white][....Exibir relatório de estoque][/bold white]
+{" "*39}[bold cyan][5][/bold cyan][bold white][...Pesquisar produto no estoque][/bold white]
+{" "*39}[bold cyan][6][/bold cyan][bold white][..Exportar planilhas para Excel][/bold white]
+{" "*39}[bold cyan][7][/bold cyan][bold white][.......Exportar itens esgotados][/bold white]
+{" "*39}[bold cyan][8][/bold cyan][bold white][......Editar produto no estoque][/bold white]
+{" "*39}[bold cyan][9][/bold cyan][bold white][.....Excluir produto do estoque][/bold white]
+{" "*39}[bold red][0][/bold red][bold white][...........................Sair][/bold white]
 
-             [bold green]Digite 'menu' a qualquer momento para              
-                   voltar ao menu principal.[/bold green]\n\n"""
+{" "*39}[bold green]Digite 'menu' a qualquer momento pra              
+{" "*45}voltar ao menu principal.[/bold green]\n\n"""
               
         menu_principal = Panel(
             menu_options,
