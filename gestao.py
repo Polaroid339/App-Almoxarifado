@@ -5,12 +5,17 @@ from datetime import datetime
 from tabulate import tabulate
 from formatter import logger
 import shutil
-
+from rich.console import Console
+from rich.panel import Panel
 
 """
 Gestão de Almoxarifado
 Sistema para controle de estoque e movimentações de produtos
 """
+
+# Inicialização do console Rich
+console = Console()
+
 
 # Definição dos arquivos CSV
 
@@ -93,12 +98,12 @@ def exibir_relatorio():
                   tablefmt='fancy_grid', showindex=False))
 
             logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
-            print("\n1 - Próxima página")
-            print("2 - Página anterior")
-            print("3 - Ir para uma página específica")
-            print("4 - Ver registros de entradas")
-            print("5 - Ver registros de saídas")
-            print("6 - Voltar")
+            console.print("\n1 - Próxima página", style="bold green")
+            console.print("2 - Página anterior", style="bold green")
+            console.print("3 - Ir para uma página específica", style="bold green")
+            console.print("4 - Ver registros de entradas", style="bold yellow")
+            console.print("5 - Ver registros de saídas", style="bold yellow")
+            console.print("6 - Voltar", style="bold red")
 
             opcao = inputm("\n> Escolha uma opção: ")
 
@@ -513,14 +518,14 @@ def pesquisar_produto():
                       tablefmt='fancy_grid', showindex=False))
 
                 logger.debug(f"\nPágina {pagina_atual + 1} de {total_paginas}")
-                print("\n1 - Próxima página")
-                print("2 - Página anterior")
-                print("3 - Ir para uma página específica")
-                print("4 - Registrar entrada de produto")
-                print("5 - Registrar saída de produto")
-                print("6 - Pesquisar outro produto")
-                print("7 - Editar produto") 
-                print("8 - Voltar ao menu") 
+                console.print("\n1 - Próxima página", style="bold green")
+                console.print("2 - Página anterior", style="bold green")
+                console.print("3 - Ir para uma página específica", style="bold green")
+                console.print("4 - Registrar entrada de produto", style="bold yellow")
+                console.print("5 - Registrar saída de produto", style="bold yellow")
+                console.print("6 - Pesquisar outro produto", style="bold yellow")
+                console.print("7 - Editar produto", style="bold yellow")
+                console.print("8 - Voltar ao menu", style="bold red") 
 
                 opcao = inputm("\n> Escolha uma opção: ")
 
@@ -665,27 +670,36 @@ def menu():
     df.to_csv("./Planilhas/Estoque.csv", index=False)
 
     while True:
-        print("\n\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m")
-        print("\033[1;36;40m|[[[[[[[[[[[[[[[[[[[[ GESTÃO DE ALMOXARIFADO ]]]]]]]]]]]]]]]]]]]]|\033[0;37;40m")
-        print("\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m")
-        print("\033[1;36;40m|                                                                |\033[0;37;40m")
-        print("\033[1;36;40m|                         MENU PRINCIPAL                         |\033[0;37;40m")
-        print("\033[1;36;40m|                                                                |\033[0;37;40m")
-        print("\033[1;36;40m|              [1]\033[0;37;40m[..Cadastrar produto no estoque]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|              [2]\033[0;37;40m[..Registrar entrada de produto]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|              [3]\033[0;37;40m[....Registrar saída de produto]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|              [4]\033[0;37;40m[...Exibir relatório de estoque]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|              [5]\033[0;37;40m[..Pesquisar produto no estoque]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|              [6]\033[0;37;40m[.Exportar planilhas para Excel]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|              [7]\033[0;37;40m[......Exportar itens esgotados]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|              [8]\033[0;37;40m[.....Editar produto no estoque]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|              [9]\033[0;37;40m[....Excluir produto do estoque]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|              \033[1;31;40m[0]\033[0;37;40m[..........................Sair]               \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|                                                                |\033[0;37;40m")
-        print("\033[1;36;40m|             Digite 'menu' a qualquer momento para              \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|                   voltar ao menu principal.                    \033[1;36;40m|\033[0;37;40m")
-        print("\033[1;36;40m|                                                                |\033[0;37;40m")
-        print("\033[1;36;40m+----------------------------------------------------------------+\033[0;37;40m\n")
+        menu_options = """\n
+              [bold cyan][1][/bold cyan][bold white][..Cadastrar produto no estoque][/bold white]              
+              [bold cyan][2][/bold cyan][bold white][..Registrar entrada de produto][/bold white]               
+              [bold cyan][3][/bold cyan][bold white][....Registrar saída de produto][/bold white]               
+              [bold cyan][4][/bold cyan][bold white][...Exibir relatório de estoque][/bold white]
+              [bold cyan][5][/bold cyan][bold white][..Pesquisar produto no estoque][/bold white]
+              [bold cyan][6][/bold cyan][bold white][.Exportar planilhas para Excel][/bold white]
+              [bold cyan][7][/bold cyan][bold white][......Exportar itens esgotados][/bold white]
+              [bold cyan][8][/bold cyan][bold white][.....Editar produto no estoque][/bold white]
+              [bold cyan][9][/bold cyan][bold white][....Excluir produto do estoque][/bold white]
+              [bold red][0][/bold red][bold white][..........................Sair][/bold white]
+
+             [bold green]Digite 'menu' a qualquer momento para              
+                   voltar ao menu principal.[/bold green]\n\n"""
+              
+        menu_principal = Panel(
+            menu_options,
+            title="[bold yellow]ALMOXARIFADO[/bold yellow]",
+            title_align="left",
+            subtitle="[bold yellow]MENU PRINCIPAL[/bold yellow]",
+            subtitle_align="right",
+            #title_align="center",
+            border_style="cyan",
+            expand=False
+        )
+
+        print()
+        console.print(menu_principal)
+        
+        print()
         opcao = inputm("> Escolha uma opção: ")
         print()
 
