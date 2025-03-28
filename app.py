@@ -89,14 +89,13 @@ def cadastrar_estoque():
         "Confirmação", f"Você deseja cadastrar o produto com código {codigo} e descrição {descricao}?"
     )
     if confirmacao:
-
         valor_total = quantidade * valor_un
 
         try:
             with open(arquivos["estoque"], "a", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow([codigo, descricao, valor_un, valor_total, quantidade, data, localizacao])
-            messagebox.showinfo("Sucesso", f"Produto cadastrado com sucesso! Código: {codigo}")
+                writer.writerow([int(codigo), descricao, valor_un, valor_total, quantidade, data, localizacao])
+            messagebox.showinfo("Sucesso", f"Produto cadastrado com sucesso! \n{descricao} Código: {codigo}")
 
             desc_entry.delete(0, tk.END)
             quantidade_entry.delete(0, tk.END)
@@ -119,7 +118,6 @@ def atualizar_tabela():
         df = pd.read_csv(os.path.join("Planilhas", "Estoque.csv"), encoding="utf-8")
         pandas_table.updateModel(TableModel(df))
         pandas_table.redraw()
-        messagebox.showinfo("Atualizado", "Tabela atualizada com sucesso!")
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao atualizar a tabela: {e}")
 
