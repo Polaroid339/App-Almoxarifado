@@ -1,155 +1,128 @@
-import flet as ft
-import pandas as pd
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
 import os
-from datetime import datetime
-from gestao import atualizar_estoque
+import pandas as pd
+from pandastable import Table, TableModel
 
-# Caminho dos arquivos CSV
-DIR_PLANILHAS = "Planilhas"
-ARQUIVO_ESTOQUE = os.path.join(DIR_PLANILHAS, "Estoque.csv")
 
-# Criar diretório e arquivo CSV caso não existam
-def inicializar_estoque():
-    os.makedirs(DIR_PLANILHAS, exist_ok=True)
-    if not os.path.exists(ARQUIVO_ESTOQUE):
-        df = pd.DataFrame(columns=["CODIGO", "DESCRICAO", "VALOR UN",
-                          "VALOR TOTAL", "QUANTIDADE", "DATA", "LOCALIZACAO"])
-        df.to_csv(ARQUIVO_ESTOQUE, index=False)
+def criar_planilhas():
+    colunas = {
+        "estoque": ["CODIGO", "DESCRICAO", "VALOR UN", "VALOR TOTAL", "QUANTIDADE", "DATA", "LOCALIZACAO"],
+        "entrada": ["CODIGO", "DESCRICAO", "QUANTIDADE", "VALOR UN", "VALOR TOTAL", "DATA"],
+        "saida": ["CODIGO", "DESCRICAO", "QUANTIDADE", "SOLICITANTE", "DATA"]
+    }
 
-def carregar_estoque():
-    if os.path.exists(ARQUIVO_ESTOQUE):
-        return pd.read_csv(ARQUIVO_ESTOQUE)
-    return pd.DataFrame(columns=["CODIGO", "DESCRICAO", "VALOR UN", "VALOR TOTAL", "QUANTIDADE", "DATA", "LOCALIZACAO"])
+    # Cria o diretório "Planilhas" caso não exista
+    os.makedirs("Planilhas", exist_ok=True)
 
-def main(page: ft.Page):
-    
-    page.title = "Gestão de Almoxarifado"
-    page.scroll = "adaptive"
-    page.window.maximized = True
-    page.padding = 30
-    page.theme_mode = ft.ThemeMode.LIGHT
-    #page.bgcolor = ft.Colors.WHITE
-    
-    inicializar_estoque()
+    # Definindo os nomes dos arquivos
+    arquivos = {
+        "estoque": "Planilhas/Estoque.csv",
+        "entrada": "Planilhas/Entrada.csv",
+        "saida": "Planilhas/Saida.csv"
+    }
 
-    def atualizar_tabela():
-        df = carregar_estoque()
-        tabela.rows = [
-            ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[col])))
-                       for col in df.columns])
-            for _, row in df.iterrows()
-        ]
-        page.update()
+    # Criação dos arquivos CSV utilizando pandas
+    for nome, arquivo in arquivos.items():
+        if not os.path.exists(arquivo):
+            # Cria um DataFrame vazio com as colunas especificadas
+            df = pd.DataFrame(columns=colunas[nome])
 
-    tabela = ft.DataTable(
-        columns=[ft.DataColumn(ft.Text(col))
-                 for col in carregar_estoque().columns],
-        rows=[],
-        expand=True,  # Permite que a tabela ocupe o espaço corretamente
-        horizontal_lines= ft.BorderSide(1),
-        vertical_lines= ft.BorderSide(1)
-    )
-    atualizar_tabela()
+            # Salva o DataFrame no arquivo CSV
+            df.to_csv(arquivo, index=False, encoding="utf-8")
 
-    def cadastrar_produto(e):
-        df = carregar_estoque()
-        codigo = len(df) + 1
-        descricao = descricao_input.value
-        valor_un = float(valor_un_input.value)
-        quantidade = int(quantidade_input.value)
-        valor_total = valor_un * quantidade
-        localizacao = localizacao_input.value
-        data = datetime.now().strftime("%H:%M %d/%m/%Y")
-        novo_produto = pd.DataFrame(
-            [[codigo, descricao, valor_un, valor_total, quantidade, data, localizacao]], columns=df.columns)
-        df = pd.concat([df, novo_produto], ignore_index=True)
-        df.to_csv(ARQUIVO_ESTOQUE, index=False)
-        atualizar_tabela()
-        atualizar_estoque()   
-        
-        descricao_input.value = valor_un_input.value = quantidade_input.value = localizacao_input.value = ""
-        resultado.value = f"Produto cadastrado com sucesso! Código: {codigo}"
-        resultado.color = ft.Colors.GREEN
-        page.update()
-        
-    def pesquisar_produto():
-        nome_busca = pesquiar_input.value
+# Função para pesquisar na tabela
 
-        try:
-            df = pd.read_csv(ARQUIVO_ESTOQUE)
-            resultado = df[
-                df["CODIGO"].astype(str).str.contains(nome_busca, na=False, case=False) |
-                df["DESCRICAO"].str.contains(nome_busca, na=False, case=False) |
-                df["LOCALIZACAO"].str.contains(nome_busca, na=False, case=False) |
-                df["DATA"].str.contains(nome_busca, na=False, case=False)
-            ]
-            tabela.rows = [
-                ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[col])))
-                           for col in resultado.columns])
-                for _, row in resultado.iterrows()
-            ]
-            page.update()
 
-        except FileNotFoundError:
-            os.system('cls')
+def search_table():
+    query = pesquisar_entry.get().strip().lower()
+    if query:
+        df_filtered = df[df.apply(lambda row: row.astype(
+            str).str.lower().str.contains(query).any(), axis=1)]
+    else:
+        df_filtered = df  # Mostra tudo se não houver consulta
 
-    descricao_input = ft.TextField(label="Descrição")
-    
-    valor_un_input = ft.TextField(
-        label="Valor Unitário",
-        keyboard_type="number",
-        prefix_text="R$ ",
-        input_filter=ft.InputFilter(allow=True, regex_string=r"^[0-9]*\.?[0-9]*$", replacement_string=""))
-    
-    quantidade_input = ft.TextField(
-        label="Quantidade",
-        input_filter=ft.InputFilter(allow=True, regex_string=r"^[0-9]*$", replacement_string=""))
-    
-    localizacao_input = ft.TextField(label="Localização")
-    
-    pesquiar_input = ft.TextField(label="Pesquisar")
-    
-    resultado = ft.Text("")
+    pandas_table.model.df = df_filtered  # Atualiza o DataFrame da tabela
+    pandas_table.redraw()  # Atualiza a exibição
 
-    tabs = ft.Tabs(
-        selected_index=0,
-        animation_duration=300,
-        tabs=[
-            ft.Tab(
-                text="Cadastrar",
-                content=ft.Column(
-                    [
-                        ft.Text("Cadastro de Produto", size=20, weight="bold"),
-                        descricao_input,
-                        valor_un_input,
-                        quantidade_input,
-                        localizacao_input,
-                        ft.ElevatedButton("Cadastrar Produto",
-                                          on_click=cadastrar_produto),
-                        ft.Divider(),
-                        resultado
-                    ], spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER       
-                ),
-            ),
-            ft.Tab(
-                text="Estoque",
-                content=ft.Column([
-                    ft.Text("Aqui está a seção de Estoque."),
-                    pesquiar_input,
-                    ft.ElevatedButton("Pesquisar", on_click=pesquisar_produto),
-                    ft.Divider(),
-                    ft.Container(content=tabela, expand=True)
-                ]),
-            ),
-            ft.Tab(
-                text="Configurações",
-                content=ft.Column([
-                    ft.Text("Ajuste as configurações do sistema aqui."),
-                    ft.Switch(label="Modo escuro")
-                ]),
-            ),
-        ])
 
-    page.add(tabs)
+def verificar_valor(tipo_valor):
+    # Obtém o valor inserido no campo de texto
+    valor = entry.get() # type: ignore
 
-ft.app(target=main)
+    try:
+        if tipo_valor == "int":
+            # Verifica se o valor é um número inteiro
+            valor_int = int(valor)
+        elif tipo_valor == "float":
+            # Verifica se o valor é um número flutuante
+            valor_float = float(valor)
+        else:
+            raise ValueError("Tipo de valor desconhecido.")
+
+        # Se a conversão for bem-sucedida, exibe a mensagem de sucesso
+        messagebox.showinfo(
+            "Sucesso", f"Valor '{valor}' aceito como {tipo_valor}!")
+
+    except ValueError:
+        # Se não for do tipo esperado, exibe o popup de erro
+        messagebox.showerror(
+            "Erro", f"Por favor, insira um valor válido para o tipo {tipo_valor}.")
+
+# Função para salvar as alterações
+
+
+def save_changes():
+    # Garante que as edições sejam capturadas
+    pandas_table.model.df = pandas_table.model.df.copy()
+    updated_df = pandas_table.model.df  # Obtém os dados editados na tabela
+    updated_df.to_csv(os.path.join("Planilhas", "Estoque.csv"), index=False)
+    pandas_table.redraw()
+
+
+# Configuração da Janela principal
+main = tk.Tk()
+main.config(bg="#C1BABA")
+main.title("Sistema de Abas")
+main.geometry("1100x600")
+
+criar_planilhas()
+
+# Criando o Notebook (sistema de abas)
+notebook = ttk.Notebook(main)
+notebook.pack(expand=True, fill="both")
+
+# Criando a aba "Estoque"
+estoque_tab = ttk.Frame(notebook)
+notebook.add(estoque_tab, text="Estoque")
+
+# Carregar CSV em um DataFrame
+df = pd.read_csv(os.path.join("Planilhas", "Estoque.csv"))
+
+# Frame da tabela
+pandas_table_table_frame = tk.Frame(master=estoque_tab)
+pandas_table_table_frame.place(x=20, y=20, width=1057, height=467)
+pandas_table = Table(parent=pandas_table_table_frame, dataframe=df)
+pandas_table.show()
+
+# Campo de entrada para pesquisa
+pesquisar_entry = tk.Entry(master=estoque_tab)
+pesquisar_entry.config(bg="#fff", fg="#000")
+pesquisar_entry.place(x=20, y=517, width=371, height=43)
+
+# Botão para pesquisar
+pesquisar_button = tk.Button(master=estoque_tab, text="Buscar", command=search_table)
+pesquisar_button.config(bg="#E4E2E2", fg="#000")
+pesquisar_button.place(x=391, y=517, width=80, height=43)
+
+# Botão para salvar alterações
+save_button = tk.Button(
+    master=estoque_tab, text="Salvar Alterações", command=save_changes)
+save_button.config(bg="#E4E2E2", fg="#000")
+save_button.place(x=941, y=517, width=120, height=43)
+
+cadastro_tab = ttk.Frame(notebook)
+notebook.add(cadastro_tab, text="Cadastro")
+
+main.mainloop()
