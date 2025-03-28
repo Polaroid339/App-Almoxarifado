@@ -41,7 +41,7 @@ def obter_proximo_codigo():
     except FileNotFoundError:
         return 3
 
-def search_table():
+def pesquisar_tabela():
     query = pesquisar_entry.get().strip().lower()
     if query:
         df_filtered = df[df.apply(lambda row: row.astype(
@@ -52,7 +52,7 @@ def search_table():
     pandas_table.model.df = df_filtered
     pandas_table.redraw()
 
-def clear_search(): 
+def limpar_tabela(): 
     pesquisar_entry.delete(0, tk.END)
     pandas_table.model.df = df
     pandas_table.redraw()
@@ -106,13 +106,13 @@ def cadastrar_estoque():
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao salvar o produto: {e}")
 
-def save_changes():
+def salvar_mudancas():
     pandas_table.model.df = pandas_table.model.df.copy()
     updated_df = pandas_table.model.df
     updated_df.to_csv(os.path.join("Planilhas", "Estoque.csv"), index=False)
     pandas_table.redraw()
     
-def refresh_table():
+def atualizar_tabela():
     global df
     try:
         df = pd.read_csv(os.path.join("Planilhas", "Estoque.csv"), encoding="utf-8")
@@ -156,19 +156,19 @@ pesquisar_entry = tk.Entry(master=estoque_tab)
 pesquisar_entry.config(bg="#fff", fg="#000")
 pesquisar_entry.place(x=20, y=517, width=371, height=43)
 
-limpar_button = tk.Button(master=estoque_tab, text="Limpar", command=clear_search)
+limpar_button = tk.Button(master=estoque_tab, text="Limpar", command=limpar_tabela)
 limpar_button.config(bg="#EF7E65", fg="#000")
 limpar_button.place(x=391, y=517, width=70, height=43)
 
-pesquisar_button = tk.Button(master=estoque_tab, text="Buscar", command=search_table)
+pesquisar_button = tk.Button(master=estoque_tab, text="Buscar", command=pesquisar_tabela)
 pesquisar_button.config(bg="#67F5A5", fg="#000")
 pesquisar_button.place(x=461, y=517, width=70, height=43)
 
-save_button = tk.Button(master=estoque_tab, text="Salvar Alterações", command=save_changes)
+save_button = tk.Button(master=estoque_tab, text="Salvar Alterações", command=salvar_mudancas)
 save_button.config(bg="#54befc", fg="#000")
 save_button.place(x=941, y=517, width=120, height=43)
 
-refresh_button = tk.Button(master=estoque_tab, text="Atualizar", command=refresh_table)
+refresh_button = tk.Button(master=estoque_tab, text="Atualizar", command=atualizar_tabela)
 refresh_button.config(bg="#54befc", fg="#000")
 refresh_button.place(x=851, y=517, width=80, height=43)
 
