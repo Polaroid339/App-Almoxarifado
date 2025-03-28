@@ -149,7 +149,7 @@ notebook.add(estoque_tab, text="Estoque")
 df = pd.read_csv(os.path.join("Planilhas", "Estoque.csv"), encoding="utf-8")
 
 pandas_table_table_frame = tk.Frame(master=estoque_tab)
-pandas_table_table_frame.place(x=20, y=20, width=1057, height=467)
+pandas_table_table_frame.place(x=20, y=20, width=1057, height=483)
 pandas_table = Table(parent=pandas_table_table_frame, dataframe=df)
 pandas_table.show()
 
