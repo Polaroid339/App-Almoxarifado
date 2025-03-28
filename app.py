@@ -111,6 +111,7 @@ def salvar_mudancas():
     updated_df = pandas_table.model.df
     updated_df.to_csv(os.path.join("Planilhas", "Estoque.csv"), index=False)
     pandas_table.redraw()
+    messagebox.showinfo("Sucesso", "Alterações salvas com sucesso!")
     
 def atualizar_tabela():
     global df
