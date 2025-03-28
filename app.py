@@ -14,6 +14,8 @@ arquivos = {
     "saida": "Planilhas/Saida.csv"
 }
 
+# Funções
+
 def criar_planilhas():
     colunas = {
         "estoque": ["CODIGO", "DESCRICAO", "VALOR UN", "VALOR TOTAL", "QUANTIDADE", "DATA", "LOCALIZACAO"],
@@ -120,7 +122,10 @@ def refresh_table():
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao atualizar a tabela: {e}")
 
+
+
 # Configuração da janela principal
+
 main = tk.Tk()
 main.config(bg="#C1BABA")
 main.title("Almoxarifado")
@@ -128,13 +133,15 @@ main.geometry("1100x600")
 
 criar_planilhas()
 
-# Criando o Notebook (sistema de abas)
+# Criando o sistema de abas
+
 notebook = ttk.Notebook(main)
 notebook.pack(expand=True, fill="both")
 
 
 
 # Aba Estoque
+
 estoque_tab = ttk.Frame(notebook)
 notebook.add(estoque_tab, text="Estoque")
 
@@ -168,6 +175,7 @@ refresh_button.place(x=851, y=517, width=80, height=43)
 
 
 # Aba Cadastro
+
 cadastro_tab = ttk.Frame(notebook)
 notebook.add(cadastro_tab, text="Cadastro")
 
