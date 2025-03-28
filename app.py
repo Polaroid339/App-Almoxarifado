@@ -128,7 +128,9 @@ def atualizar_tabela():
 main = tk.Tk()
 main.config(bg="#C1BABA")
 main.title("Almoxarifado")
-main.geometry("1100x600")
+main.geometry("1100x600")   
+main.resizable(False, False)
+main.iconbitmap("favicon.ico")
 
 criar_planilhas()
 
