@@ -67,10 +67,10 @@ def buscar_produto(codigo):
     try:
         with open(arquivos["estoque"], "r", encoding="utf-8") as f:
             reader = csv.reader(f)
-            next(reader)  # Pular cabeçalho
+            next(reader)
             for row in reader:
                 if row[0] == codigo:
-                    return row  # Retorna a linha completa do produto
+                    return row
     except FileNotFoundError:
         pass
     return None
