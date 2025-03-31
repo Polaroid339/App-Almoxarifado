@@ -331,11 +331,11 @@ def trocar_tabela(nome_tabela):
 
 def salvar_mudancas():
     try:
-        updated_df = pandas_table.model.df.copy()
-        updated_df.to_csv(arquivos[tabela_atual], index=False, encoding="utf-8")
-        
         if os.path.exists("./Planilhas/Estoque.csv"):
             shutil.copy("./Planilhas/Estoque.csv", "./Planilhas/Estoque_backup.csv")
+
+        updated_df = pandas_table.model.df.copy()
+        updated_df.to_csv(arquivos[tabela_atual], index=False, encoding="utf-8")
 
         pandas_table.redraw()
 
