@@ -1,6 +1,6 @@
 # Gerenciador de Almoxarifado
 
-Este aplicativo é um sistema de gerenciamento de almoxarifado desenvolvido em Python com interface gráfica utilizando Tkinter. Ele permite gerenciar o estoque, registrar entradas e saídas de produtos, e gerar relatórios.
+Este aplicativo é um sistema de gerenciamento de almoxarifado e estoque desenvolvido em Python com interface gráfica utilizando Tkinter. Ele permite gerenciar o estoque, registrar entradas e saídas de produtos, e gerar relatórios.
 
 
 ## Funcionalidades
@@ -13,18 +13,20 @@ Este aplicativo é um sistema de gerenciamento de almoxarifado desenvolvido em P
 ### 2. **Cadastro de Produtos**
 
 - Cadastre novos produtos no estoque com as seguintes informações:
-  - Código
+
   - Descrição
   - Quantidade
   - Valor Unitário
   - Localização
-  - Data de cadastro
+ 
+Código e Data de Cadastro serão gerados dinamicamente.
 
 ### 3. **Movimentação de Produtos**
 
 - **Registrar Entrada**:
   - Adicione quantidades ao estoque de produtos existentes.
   - Registre a entrada com informações como código, quantidade e valor total.
+
 - **Registrar Saída**:
   - Retire quantidades do estoque de produtos existentes.
   - Registre a saída com informações como código, quantidade e solicitante.
@@ -38,11 +40,6 @@ Este aplicativo é um sistema de gerenciamento de almoxarifado desenvolvido em P
 
 - Pesquise produtos no estoque por qualquer termo.
 - Limpe os filtros para visualizar todos os produtos novamente.
-
-- **Planilhas/**: Contém os arquivos CSV que armazenam os dados do estoque, entradas e saídas.
-- **app.py**: Código principal do sistema.
-- **favicon.ico**: Ícone do aplicativo.
-- **README.md**: Documentação do projeto.
 
 ## Requisitos
 
@@ -82,7 +79,7 @@ pip install pyinstaller
 python -m PyInstaller --onefile --name=Almoxarifado --windowed --icon=favicon.ico --add-data "Planilhas;Planilhas" app.py
 ```
 
-O executável será gerado na pasta dist/ com o nome Almoxarifado.exe.
+O executável será gerado na pasta `dist/` com o nome Almoxarifado.exe.
 
 ## Como Usar
 
@@ -121,4 +118,4 @@ O executável será gerado na pasta dist/ com o nome Almoxarifado.exe.
 Desenvolvido por Victor Oliveira (Polaroid339).
 
 ## Licença
-Este projeto é licenciado sob a MIT License, mais informações em LICENSE.TXT
+Este projeto é licenciado sob a MIT License, mais informações em `LICENSE.TXT`
