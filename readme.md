@@ -41,11 +41,6 @@ Código e Data de Cadastro serão gerados dinamicamente.
 - Pesquise produtos no estoque por qualquer termo.
 - Limpe os filtros para visualizar todos os produtos novamente.
 
-- **Planilhas/**: Contém os arquivos CSV que armazenam os dados do estoque, entradas e saídas.
-- **app.py**: Código principal do sistema.
-- **favicon.ico**: Ícone do aplicativo.
-- **README.md**: Documentação do projeto.
-
 ## Requisitos
 
 - Python 3.8 ou superior
