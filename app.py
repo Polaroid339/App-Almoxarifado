@@ -333,6 +333,10 @@ def salvar_mudancas():
     try:
         updated_df = pandas_table.model.df.copy()
         updated_df.to_csv(arquivos[tabela_atual], index=False, encoding="utf-8")
+        
+        if os.path.exists("./Planilhas/Estoque.csv"):
+            shutil.copy("./Planilhas/Estoque.csv", "./Planilhas/Estoque_backup.csv")
+
         pandas_table.redraw()
 
         messagebox.showinfo("Sucesso", f"Alterações na tabela {tabela_atual.capitalize()} salvas com sucesso!")
