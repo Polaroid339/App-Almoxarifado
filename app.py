@@ -323,11 +323,27 @@ def trocar_tabela(nome_tabela):
         df = pd.read_csv(arquivos[nome_tabela], encoding="utf-8")
         pandas_table.updateModel(TableModel(df))
         pandas_table.redraw()
+
+        atualizar_cores_botoes()
+
         messagebox.showinfo("Tabela Atualizada", f"Agora exibindo a tabela {nome_tabela.capitalize()}")
     except FileNotFoundError:
         messagebox.showerror("Erro", f"Arquivo da tabela {nome_tabela} não encontrado.")
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao carregar a tabela {nome_tabela}: {e}")
+
+
+def atualizar_cores_botoes():
+    tabela_estoque_button.config(bg="#C1BABA", fg="#000")
+    tabela_entrada_button.config(bg="#C1BABA", fg="#000")
+    tabela_saida_button.config(bg="#C1BABA", fg="#000")
+
+    if tabela_atual == "estoque":
+        tabela_estoque_button.config(bg="#54befc", fg="#000")  # Verde para indicar ativo
+    elif tabela_atual == "entrada":
+        tabela_entrada_button.config(bg="#54befc", fg="#000")  # Verde para indicar ativo
+    elif tabela_atual == "saida":
+        tabela_saida_button.config(bg="#54befc", fg="#000")  # Verde para indicar ativo
 
 
 def salvar_mudancas():
@@ -354,9 +370,6 @@ def salvar_mudancas():
         
 
 def criar_backup_periodico():
-    """
-    Cria backups periódicos dos arquivos de dados.
-    """
     pasta_backup = "Backups"
     os.makedirs(pasta_backup, exist_ok=True)
 
