@@ -349,12 +349,12 @@ def atualizar_tabela():
     try:
         df = pd.read_csv(arquivos[tabela_atual], encoding="utf-8")
 
-        if tabela_atual == "estoque":
-            df["VALOR TOTAL"] = df["VALOR UN"] * df["QUANTIDADE"]
-            df.to_csv(arquivos["estoque"], index=False, encoding="utf-8")
-            
         if os.path.exists("./Planilhas/Estoque.csv"):
             shutil.copy("./Planilhas/Estoque.csv", "./Planilhas/Estoque_backup.csv")
+
+        if tabela_atual == "estoque":
+            df["VALOR TOTAL"] = df["VALOR UN"] * df["QUANTIDADE"]
+            df.to_csv(arquivos["estoque"], index=False, encoding="utf-8")         
 
         pandas_table.updateModel(TableModel(df))
         pandas_table.redraw()
