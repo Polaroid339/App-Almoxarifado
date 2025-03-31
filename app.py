@@ -396,7 +396,7 @@ pandas_table = Table(parent=pandas_table_table_frame, dataframe=df)
 pandas_table.show()
 
 pesquisar_entry = tk.Entry(master=estoque_tab)
-pesquisar_entry.config(bg="#fff", fg="#000")
+pesquisar_entry.config(bg="#fff", fg="#000", borderwidth=3)
 pesquisar_entry.place(x=20, y=517, width=295, height=43)
 
 limpar_button = tk.Button(master=estoque_tab, text="Limpar", command=limpar_tabela)
