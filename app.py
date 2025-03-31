@@ -1,5 +1,6 @@
 import os
 import csv
+import time
 import shutil
 import pandas as pd
 import tkinter as tk
@@ -331,18 +332,49 @@ def trocar_tabela(nome_tabela):
 
 def salvar_mudancas():
     try:
-        if os.path.exists("./Planilhas/Estoque.csv"):
-            shutil.copy("./Planilhas/Estoque.csv", "./Planilhas/Estoque_backup.csv")
+        df_original = pd.read_csv(arquivos[tabela_atual], encoding="utf-8")
 
-        updated_df = pandas_table.model.df.copy()
-        updated_df.to_csv(arquivos[tabela_atual], index=False, encoding="utf-8")
+        df_atualizado = pandas_table.model.df.copy()
 
+        for index, row in df_atualizado.iterrows():
+            if not row.equals(df_original.loc[index]):
+                df_original.loc[index] = row
+
+        if os.path.exists(arquivos[tabela_atual]):
+            shutil.copy(arquivos[tabela_atual], arquivos[tabela_atual].replace(".csv", "_backup.csv"))
+
+        df_original.to_csv(arquivos[tabela_atual], index=False, encoding="utf-8")
+
+        pandas_table.updateModel(TableModel(df_original))
         pandas_table.redraw()
 
         messagebox.showinfo("Sucesso", f"Alterações na tabela {tabela_atual.capitalize()} salvas com sucesso!")
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao salvar alterações na tabela {tabela_atual}: {e}")
-    
+        
+
+def criar_backup_periodico():
+    """
+    Cria backups periódicos dos arquivos de dados.
+    """
+    pasta_backup = "Backups"
+    os.makedirs(pasta_backup, exist_ok=True)
+
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+
+    try:
+        for nome, arquivo in arquivos.items():
+            if os.path.exists(arquivo):
+                nome_backup = f"{nome}_{timestamp}.csv"
+                caminho_backup = os.path.join(pasta_backup, nome_backup)
+                shutil.copy(arquivo, caminho_backup)
+
+        print(f"Backup criado com sucesso em {timestamp}")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao criar backup: {e}")
+
+    main.after(600000, criar_backup_periodico)
+
 
 def atualizar_tabela():
     global df
@@ -529,6 +561,7 @@ saida_button = tk.Button(master=movimentacao_tab, text="Registrar Saída", comma
 saida_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
 saida_button.place(x=645, y=280, width=371, height=40)
 
+criar_backup_periodico()
 
 main.mainloop()
 
