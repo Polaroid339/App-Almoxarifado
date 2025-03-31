@@ -5,6 +5,7 @@ import os
 import pandas as pd
 from pandastable import Table, TableModel
 import csv
+import shutil
 from datetime import datetime
 
 
@@ -13,6 +14,7 @@ arquivos = {
     "entrada": "Planilhas/Entrada.csv",
     "saida": "Planilhas/Saida.csv"
 }
+
 
 # Funções
 
@@ -41,6 +43,34 @@ def obter_proximo_codigo():
     except FileNotFoundError:
         return 3
 
+    
+def atualizar_estoque(codigo, nova_quantidade):
+    with open(arquivos["estoque"], "r", encoding="utf-8") as f:
+        produtos = list(csv.reader(f))
+
+    for produto in produtos:
+        if produto[0] == codigo:
+            produto[4] = str(nova_quantidade)
+            produto[3] = str(float(produto[2]) * int(nova_quantidade))
+
+    with open(arquivos["estoque"], "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerows(produtos)
+
+
+def buscar_produto(codigo):
+    try:
+        with open(arquivos["estoque"], "r", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            next(reader)  # Pular cabeçalho
+            for row in reader:
+                if row[0] == codigo:
+                    return row  # Retorna a linha completa do produto
+    except FileNotFoundError:
+        pass
+    return None
+
+
 def pesquisar_tabela():
     query = pesquisar_entry.get().strip().lower()
     if query:
@@ -52,10 +82,12 @@ def pesquisar_tabela():
     pandas_table.model.df = df_filtered
     pandas_table.redraw()
 
+
 def limpar_tabela(): 
     pesquisar_entry.delete(0, tk.END)
     pandas_table.model.df = df
     pandas_table.redraw()
+
         
 def cadastrar_estoque():
     codigo = obter_proximo_codigo()
@@ -104,22 +136,208 @@ def cadastrar_estoque():
 
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao salvar o produto: {e}")
+            return
+
+            
+def registrar_entrada():
+    codigo = codigo_entry.get().strip()
+    if not codigo:
+        messagebox.showerror("Erro", "O código do produto não pode ser vazio.")
+        return
+
+    produto = buscar_produto(codigo)
+    if not produto:
+        messagebox.showerror("Erro", "Código do produto não encontrado.")
+        return
+
+    quantidade_adicionada = quantidade_entrada_entry.get().strip()
+    if not quantidade_adicionada.isdigit():
+        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro.")
+        return
+    quantidade_adicionada = int(quantidade_adicionada)
+
+    nova_quantidade = int(produto[4]) + quantidade_adicionada
+    data = datetime.now().strftime("%H:%M %d/%m/%Y")
+
+    with open(arquivos["estoque"], "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        linhas = list(reader)
+
+    valor_un = None
+    for linha in linhas:
+        if linha[0] == codigo:
+            valor_un = float(linha[2])
+            break
+
+    if valor_un is None:
+        messagebox.showerror("Erro", "Código do produto não encontrado no estoque!")
+        return
+
+    valor_total = valor_un * quantidade_adicionada
+
+    confirmacao = messagebox.askyesno(
+        "Confirmação",
+        f"Você deseja registrar a entrada nesse produto?\n\n"
+        f"Código: {codigo}\n"
+        f"Descrição: {produto[1]}\n"
+        f"Quantidade a adicionar: {quantidade_adicionada}\n"
+        f"Valor Unitário: R$ {valor_un:.2f}\n"
+        f"Valor Total: R$ {valor_total:.2f}"
+    )
+
+    if confirmacao:
+        with open(arquivos["entrada"], "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([codigo, produto[1], quantidade_adicionada, valor_un, valor_total, data])
+
+        atualizar_estoque(codigo, nova_quantidade)
+        messagebox.showinfo(
+            "Sucesso",
+            f"Entrada registrada e estoque atualizado!\n"
+            f"{produto[1]} | Quantidade: {nova_quantidade}"
+        )
+        
+        codigo_entry.delete(0, tk.END)
+        quantidade_entrada_entry.delete(0, tk.END)
+        
+
+def registrar_saida():
+    codigo = codigo_saida_entry.get().strip()
+    if not codigo:
+        messagebox.showerror("Erro", "O código do produto não pode ser vazio.")
+        return
+
+    produto = buscar_produto(codigo)
+    if not produto:
+        messagebox.showerror("Erro", "Código do produto não encontrado.")
+        return
+
+    solicitante = solicitante_entry.get().strip().upper()
+    if not solicitante:
+        messagebox.showerror("Erro", "O nome do solicitante não pode ser vazio.")
+        return
+
+    quantidade_retirada = quantidade_saida_entry.get().strip()
+    if not quantidade_retirada.isdigit():
+        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro.")
+        return
+    quantidade_retirada = int(quantidade_retirada)
+
+    if quantidade_retirada > int(produto[4]):
+        messagebox.showerror("Erro", "Quantidade insuficiente no estoque!")
+        return
+
+    nova_quantidade = int(produto[4]) - quantidade_retirada
+    data = datetime.now().strftime("%H:%M %d/%m/%Y")
+
+    confirmacao = messagebox.askyesno(
+        "Confirmação",
+        f"Você deseja registrar a saída deste produto?\n\n"
+        f"Código: {codigo}\n"
+        f"Descrição: {produto[1]}\n"
+        f"Quantidade a retirar: {quantidade_retirada}\n"
+        f"Solicitante: {solicitante}\n"
+        f"Quantidade restante: {nova_quantidade}"
+    )
+
+    if confirmacao:
+        with open(arquivos["saida"], "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([codigo, produto[1], quantidade_retirada, solicitante, data])
+
+        atualizar_estoque(codigo, nova_quantidade)
+        messagebox.showinfo(
+            "Sucesso",
+            f"Saída registrada e estoque atualizado!\n"
+            f"{produto[1]} | Quantidade restante: {nova_quantidade}"
+        )
+
+        codigo_saida_entry.delete(0, tk.END)
+        solicitante_entry.delete(0, tk.END)
+        quantidade_saida_entry.delete(0, tk.END)
+        
+        
+def exportar_conteudo():
+    pasta_saida = "Relatorios"
+    os.makedirs(pasta_saida, exist_ok=True)
+    caminho_excel = os.path.join(pasta_saida, "Relatorio_Almoxarifado.xlsx")
+    caminho_txt = os.path.join(pasta_saida, "Produtos_Esgotados.txt")
+
+    try:
+        with pd.ExcelWriter(caminho_excel) as writer:
+            for nome, arquivo in arquivos.items():
+                try:
+                    df = pd.read_csv(arquivo, encoding="utf-8")
+                    df.to_excel(writer, sheet_name=nome.capitalize(), index=False)
+                except FileNotFoundError:
+                    messagebox.showwarning("Aviso", f"Arquivo {arquivo} não encontrado. Ignorando...")
+        
+        df_estoque = pd.read_csv(arquivos["estoque"], encoding="utf-8")
+        produtos_esgotados = df_estoque[df_estoque["QUANTIDADE"] == 0]
+
+        with open(caminho_txt, "w", encoding="utf-8") as f:
+            f.write("Relatório de Produtos Esgotados\n")
+            f.write("-" * 40 + "\n")
+            for _, row in produtos_esgotados.iterrows():
+                f.write(f"Código: {row['CODIGO']} | Descrição: {row['DESCRICAO']}\n")
+            f.write("-" * 40 + "\n")
+
+        messagebox.showinfo("Sucesso", f"Relatórios exportados com sucesso!\n\n"
+                                       f"Excel: {caminho_excel}\n"
+                                       f"Produtos Esgotados: {caminho_txt}")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao exportar relatórios: {e}")
+    
+
+tabela_atual = "estoque"
+
+
+def trocar_tabela(nome_tabela):
+    global tabela_atual, df
+
+    tabela_atual = nome_tabela
+
+    try:
+        df = pd.read_csv(arquivos[nome_tabela], encoding="utf-8")
+
+        pandas_table.updateModel(TableModel(df))
+        pandas_table.redraw()
+
+        messagebox.showinfo("Tabela Atualizada", f"Agora exibindo a tabela: {nome_tabela.capitalize()}")
+    except FileNotFoundError:
+        messagebox.showerror("Erro", f"Arquivo da tabela {nome_tabela} não encontrado.")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao carregar a tabela {nome_tabela}: {e}")          
+        
+
 
 def salvar_mudancas():
-    pandas_table.model.df = pandas_table.model.df.copy()
-    updated_df = pandas_table.model.df
-    updated_df.to_csv(os.path.join("Planilhas", "Estoque.csv"), index=False)
-    pandas_table.redraw()
-    messagebox.showinfo("Sucesso", "Alterações salvas com sucesso!")
+    try:
+        updated_df = pandas_table.model.df.copy()
+        updated_df.to_csv(arquivos[tabela_atual], index=False, encoding="utf-8")
+        pandas_table.redraw()
+
+        messagebox.showinfo("Sucesso", f"Alterações na tabela {tabela_atual.capitalize()} salvas com sucesso!")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao salvar alterações na tabela {tabela_atual}: {e}")
     
 def atualizar_tabela():
     global df
     try:
-        df = pd.read_csv(os.path.join("Planilhas", "Estoque.csv"), encoding="utf-8")
+        df = pd.read_csv(arquivos[tabela_atual], encoding="utf-8")
+
+        if tabela_atual == "estoque":
+            df["VALOR TOTAL"] = df["VALOR UN"] * df["QUANTIDADE"]
+            df.to_csv(arquivos["estoque"], index=False, encoding="utf-8")
+
         pandas_table.updateModel(TableModel(df))
         pandas_table.redraw()
+
+        messagebox.showinfo("Sucesso", f"Tabela {tabela_atual.capitalize()} atualizada com sucesso!")
+    except FileNotFoundError:
+        messagebox.showerror("Erro", f"Arquivo da tabela {tabela_atual} não encontrado.")
     except Exception as e:
-        messagebox.showerror("Erro", f"Erro ao atualizar a tabela: {e}")
+        messagebox.showerror("Erro", f"Erro ao atualizar a tabela {tabela_atual}: {e}")
 
 
 
@@ -155,15 +373,15 @@ pandas_table.show()
 
 pesquisar_entry = tk.Entry(master=estoque_tab)
 pesquisar_entry.config(bg="#fff", fg="#000")
-pesquisar_entry.place(x=20, y=517, width=371, height=43)
+pesquisar_entry.place(x=20, y=517, width=300, height=43)
 
 limpar_button = tk.Button(master=estoque_tab, text="Limpar", command=limpar_tabela)
 limpar_button.config(bg="#EF7E65", fg="#000")
-limpar_button.place(x=391, y=517, width=70, height=43)
+limpar_button.place(x=320, y=517, width=70, height=43)
 
 pesquisar_button = tk.Button(master=estoque_tab, text="Buscar", command=pesquisar_tabela)
 pesquisar_button.config(bg="#67F5A5", fg="#000")
-pesquisar_button.place(x=461, y=517, width=70, height=43)
+pesquisar_button.place(x=390, y=517, width=70, height=43)
 
 save_button = tk.Button(master=estoque_tab, text="Salvar Alterações", command=salvar_mudancas)
 save_button.config(bg="#54befc", fg="#000")
@@ -173,6 +391,21 @@ refresh_button = tk.Button(master=estoque_tab, text="Atualizar", command=atualiz
 refresh_button.config(bg="#54befc", fg="#000")
 refresh_button.place(x=851, y=517, width=80, height=43)
 
+exportar_button = tk.Button(master=estoque_tab, text="Exportar", command=exportar_conteudo)
+exportar_button.config(bg="#FFFF00", fg="#000")
+exportar_button.place(x=490, y=517, width=80, height=43)
+
+tabela_estoque_button = tk.Button(master=estoque_tab, text="Estoque", command=lambda: trocar_tabela("estoque"))
+tabela_estoque_button.config(bg="#C1BABA", fg="#000")
+tabela_estoque_button.place(x=600, y=517, width=70, height=43)
+
+tabela_entrada_button = tk.Button(master=estoque_tab, text="Entrada", command=lambda: trocar_tabela("entrada"))
+tabela_entrada_button.config(bg="#C1BABA", fg="#000")
+tabela_entrada_button.place(x=670, y=517, width=70, height=43)
+
+tabela_saida_button = tk.Button(master=estoque_tab, text="Saída", command=lambda: trocar_tabela("saida"))
+tabela_saida_button.config(bg="#C1BABA", fg="#000")
+tabela_saida_button.place(x=740, y=517, width=70, height=43)
 
 
 # Aba Cadastro
@@ -207,5 +440,63 @@ localizacao_entry.place(x=20, y=250, width=371, height=40)
 cadastro_button = tk.Button(master=cadastro_tab, text="Cadastrar", command=cadastrar_estoque)
 cadastro_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
 cadastro_button.place(x=20, y=320, width=371, height=40)
+
+
+
+# Aba Movimentação
+
+movimentacao_tab = ttk.Frame(notebook)
+notebook.add(movimentacao_tab, text="Movimentação")
+
+# Entrada
+
+titulo_entrada_label = tk.Label(master=movimentacao_tab, text="Registrar Entrada", font=("Arial", 16))
+titulo_entrada_label.place(x=80, y=20)
+
+codigo_label = tk.Label(master=movimentacao_tab, text="Código", font=("Arial", 12))
+codigo_label.place(x=80, y=60)
+codigo_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+codigo_entry.config(bg="#fff", fg="#000")
+codigo_entry.place(x=80, y=83, width=371, height=40)
+
+quantidade_entrada_label= tk.Label(master=movimentacao_tab, text="Quantidade", font=("Arial", 12))
+quantidade_entrada_label.place(x=80, y=130)
+quantidade_entrada_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+quantidade_entrada_entry.config(bg="#fff", fg="#000")
+quantidade_entrada_entry.place(x=80, y=153, width=371, height=40)
+
+entrada_button = tk.Button(master=movimentacao_tab, text="Registrar Entrada", command=registrar_entrada)
+entrada_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
+entrada_button.place(x=80, y=220, width=374, height=40)
+
+separator = ttk.Separator(movimentacao_tab, orient="vertical")
+separator.place(x=550, y=20, height=530)
+
+# Saída
+
+titulo_saida_label = tk.Label(master=movimentacao_tab, text="Registrar Saída", font=("Arial", 16))
+titulo_saida_label.place(x=645, y=20)
+
+codigo_saida_label = tk.Label(master=movimentacao_tab, text="Código", font=("Arial", 12))
+codigo_saida_label.place(x=645, y=60)
+codigo_saida_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+codigo_saida_entry.config(bg="#fff", fg="#000")
+codigo_saida_entry.place(x=645, y=83, width=371, height=40)
+
+solicitante_label = tk.Label(master=movimentacao_tab, text="Solicitante", font=("Arial", 12))
+solicitante_label.place(x=645, y=130)
+solicitante_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+solicitante_entry.config(bg="#fff", fg="#000")
+solicitante_entry.place(x=645, y=153, width=371, height=40)
+
+quantidade_saida_label = tk.Label(master=movimentacao_tab, text="Quantidade", font=("Arial", 12))
+quantidade_saida_label.place(x=645, y=200)
+quantidade_saida_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+quantidade_saida_entry.config(bg="#fff", fg="#000")
+quantidade_saida_entry.place(x=645, y=223, width=371, height=40)
+
+saida_button = tk.Button(master=movimentacao_tab, text="Registrar Saída", command=registrar_saida)
+saida_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
+saida_button.place(x=645, y=290, width=374, height=40)
 
 main.mainloop()
