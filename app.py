@@ -339,11 +339,11 @@ def atualizar_cores_botoes():
     tabela_saida_button.config(bg="#C1BABA", fg="#000")
 
     if tabela_atual == "estoque":
-        tabela_estoque_button.config(bg="#54befc", fg="#000")  # Verde para indicar ativo
+        tabela_estoque_button.config(bg="#54befc", fg="#000")
     elif tabela_atual == "entrada":
-        tabela_entrada_button.config(bg="#54befc", fg="#000")  # Verde para indicar ativo
+        tabela_entrada_button.config(bg="#54befc", fg="#000")
     elif tabela_atual == "saida":
-        tabela_saida_button.config(bg="#54befc", fg="#000")  # Verde para indicar ativo
+        tabela_saida_button.config(bg="#54befc", fg="#000")
 
 
 def salvar_mudancas():
