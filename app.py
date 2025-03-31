@@ -359,7 +359,6 @@ def atualizar_tabela():
         pandas_table.updateModel(TableModel(df))
         pandas_table.redraw()
 
-        messagebox.showinfo("Sucesso", f"Tabela {tabela_atual.capitalize()} atualizada com sucesso!")
     except FileNotFoundError:
         messagebox.showerror("Erro", f"Arquivo da tabela {tabela_atual} não encontrado.")
     except Exception as e:
