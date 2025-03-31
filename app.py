@@ -1,5 +1,6 @@
 import os
 import csv
+import shutil
 import pandas as pd
 import tkinter as tk
 from tkinter import ttk
@@ -347,6 +348,9 @@ def atualizar_tabela():
         if tabela_atual == "estoque":
             df["VALOR TOTAL"] = df["VALOR UN"] * df["QUANTIDADE"]
             df.to_csv(arquivos["estoque"], index=False, encoding="utf-8")
+            
+        if os.path.exists("./Planilhas/Estoque.csv"):
+            shutil.copy("./Planilhas/Estoque.csv", "./Planilhas/Estoque_backup.csv")
 
         pandas_table.updateModel(TableModel(df))
         pandas_table.redraw()
@@ -525,4 +529,4 @@ saida_button.place(x=645, y=280, width=371, height=40)
 
 main.mainloop()
 
-# python -m PyInstaller --onefile --windowed --icon=favicon.ico --add-data "Planilhas;Planilhas" app.py
+# python -m PyInstaller --onefile --name=Almoxarifado --windowed --icon=favicon.ico --add-data "Planilhas;Planilhas" app.py
