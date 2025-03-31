@@ -246,7 +246,7 @@ def trocar_tabela(nome_tabela):
         df = pd.read_csv(arquivos[nome_tabela], encoding="utf-8")
         pandas_table.updateModel(TableModel(df))
         pandas_table.redraw()
-        messagebox.showinfo("Tabela Atualizada", f"Agora exibindo a tabela: {nome_tabela.capitalize()}")
+        messagebox.showinfo("Tabela Atualizada", f"Agora exibindo a tabela {nome_tabela.capitalize()}")
     except FileNotFoundError:
         messagebox.showerror("Erro", f"Arquivo da tabela {nome_tabela} não encontrado.")
     except Exception as e:
@@ -316,7 +316,7 @@ pandas_table.show()
 
 pesquisar_entry = tk.Entry(master=estoque_tab)
 pesquisar_entry.config(bg="#fff", fg="#000")
-pesquisar_entry.place(x=20, y=517, width=300, height=43)
+pesquisar_entry.place(x=20, y=517, width=295, height=43)
 
 limpar_button = tk.Button(master=estoque_tab, text="Limpar", command=limpar_tabela)
 limpar_button.config(bg="#EF7E65", fg="#000")
@@ -351,38 +351,42 @@ tabela_saida_button.config(bg="#C1BABA", fg="#000")
 tabela_saida_button.place(x=740, y=517, width=70, height=43)
 
 
+
 # Aba Cadastro
 
 cadastro_tab = ttk.Frame(notebook)
 notebook.add(cadastro_tab, text="Cadastro")
 
+titulo_cadastro_label = tk.Label(master=cadastro_tab, text="Cadastro de Produto", font=("Arial", 16))
+titulo_cadastro_label.place(x=20, y=20)
+
 desc_label = tk.Label(master=cadastro_tab, text="Descrição", font=("Arial", 12))
-desc_label.place(x=20, y=20)
+desc_label.place(x=20, y=60)
 desc_entry = tk.Entry(master=cadastro_tab, font=("Arial", 12))
 desc_entry.config(bg="#fff", fg="#000")
-desc_entry.place(x=20, y=40, width=371, height=40)
+desc_entry.place(x=20, y=90, width=371, height=30)
 
 quantidade_label = tk.Label(master=cadastro_tab, text="Quantidade", font=("Arial", 12))
-quantidade_label.place(x=20, y=90)
+quantidade_label.place(x=20, y=130)
 quantidade_entry = tk.Entry(master=cadastro_tab, font=("Arial", 12))
 quantidade_entry.config(bg="#fff", fg="#000")
-quantidade_entry.place(x=20, y=110, width=371, height=40)
+quantidade_entry.place(x=20, y=160, width=371, height=30)
 
 valor_label = tk.Label(master=cadastro_tab, text="Valor Unitário", font=("Arial", 12))
-valor_label.place(x=20, y=160)
+valor_label.place(x=20, y=200)
 valor_entry = tk.Entry(master=cadastro_tab, font=("Arial", 12))
 valor_entry.config(bg="#fff", fg="#000")
-valor_entry.place(x=20, y=180, width=371, height=40)
+valor_entry.place(x=20, y=230, width=371, height=30)
 
 localizacao_label = tk.Label(master=cadastro_tab, text="Localização", font=("Arial", 12))
-localizacao_label.place(x=20, y=230)
+localizacao_label.place(x=20, y=270)
 localizacao_entry = tk.Entry(master=cadastro_tab, font=("Arial", 12))
 localizacao_entry.config(bg="#fff", fg="#000")
-localizacao_entry.place(x=20, y=250, width=371, height=40)
+localizacao_entry.place(x=20, y=300, width=371, height=30)
 
 cadastro_button = tk.Button(master=cadastro_tab, text="Cadastrar", command=cadastrar_estoque)
 cadastro_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
-cadastro_button.place(x=20, y=320, width=371, height=40)
+cadastro_button.place(x=20, y=350, width=371, height=40)
 
 
 
@@ -401,17 +405,17 @@ codigo_label = tk.Label(master=movimentacao_tab, text="Código", font=("Arial", 
 codigo_label.place(x=80, y=60)
 codigo_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
 codigo_entry.config(bg="#fff", fg="#000")
-codigo_entry.place(x=80, y=83, width=371, height=40)
+codigo_entry.place(x=80, y=90, width=371, height=30)
 
-quantidade_entrada_label= tk.Label(master=movimentacao_tab, text="Quantidade", font=("Arial", 12))
+quantidade_entrada_label = tk.Label(master=movimentacao_tab, text="Quantidade", font=("Arial", 12))
 quantidade_entrada_label.place(x=80, y=130)
 quantidade_entrada_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
 quantidade_entrada_entry.config(bg="#fff", fg="#000")
-quantidade_entrada_entry.place(x=80, y=153, width=371, height=40)
+quantidade_entrada_entry.place(x=80, y=160, width=371, height=30)
 
 entrada_button = tk.Button(master=movimentacao_tab, text="Registrar Entrada", command=registrar_entrada)
 entrada_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
-entrada_button.place(x=80, y=220, width=374, height=40)
+entrada_button.place(x=80, y=210, width=371, height=40)
 
 separator = ttk.Separator(movimentacao_tab, orient="vertical")
 separator.place(x=550, y=20, height=530)
@@ -426,22 +430,22 @@ codigo_saida_label = tk.Label(master=movimentacao_tab, text="Código", font=("Ar
 codigo_saida_label.place(x=645, y=60)
 codigo_saida_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
 codigo_saida_entry.config(bg="#fff", fg="#000")
-codigo_saida_entry.place(x=645, y=83, width=371, height=40)
+codigo_saida_entry.place(x=645, y=90, width=371, height=30)
 
 solicitante_label = tk.Label(master=movimentacao_tab, text="Solicitante", font=("Arial", 12))
 solicitante_label.place(x=645, y=130)
 solicitante_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
 solicitante_entry.config(bg="#fff", fg="#000")
-solicitante_entry.place(x=645, y=153, width=371, height=40)
+solicitante_entry.place(x=645, y=160, width=371, height=30)
 
 quantidade_saida_label = tk.Label(master=movimentacao_tab, text="Quantidade", font=("Arial", 12))
 quantidade_saida_label.place(x=645, y=200)
 quantidade_saida_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
 quantidade_saida_entry.config(bg="#fff", fg="#000")
-quantidade_saida_entry.place(x=645, y=223, width=371, height=40)
+quantidade_saida_entry.place(x=645, y=230, width=371, height=30)
 
 saida_button = tk.Button(master=movimentacao_tab, text="Registrar Saída", command=registrar_saida)
 saida_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
-saida_button.place(x=645, y=290, width=374, height=40)
+saida_button.place(x=645, y=280, width=371, height=40)
 
 main.mainloop()
