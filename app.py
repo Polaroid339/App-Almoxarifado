@@ -160,6 +160,12 @@ def registrar_entrada():
         return
     quantidade_adicionada = int(quantidade_adicionada)
 
+    try:
+        nova_quantidade = int(produto[4]) + quantidade_adicionada
+    except ValueError:
+        messagebox.showerror("Erro", "Erro ao calcular a nova quantidade. Verifique os valores no estoque.")
+        return
+
     nova_quantidade = int(produto[4]) + quantidade_adicionada
     data = datetime.now().strftime("%H:%M %d/%m/%Y")
 
@@ -222,9 +228,10 @@ def registrar_saida():
         return
 
     quantidade_retirada = quantidade_saida_entry.get().strip()
-    if not quantidade_retirada.isdigit():
-        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro.")
+    if not quantidade_retirada.isdigit() or int(quantidade_retirada) <= 0:
+        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro maior que zero.")
         return
+
     quantidade_retirada = int(quantidade_retirada)
 
     if quantidade_retirada > int(produto[4]):
