@@ -1,12 +1,12 @@
+import os
+import csv
+import shutil
+import pandas as pd
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-import os
-import pandas as pd
-from pandastable import Table, TableModel
-import csv
-import shutil
 from datetime import datetime
+from pandastable import Table, TableModel
 
 
 arquivos = {
@@ -37,10 +37,10 @@ def obter_proximo_codigo():
         with open(arquivos["estoque"], "r", encoding="utf-8") as f:
             reader = list(csv.reader(f))
             if len(reader) > 1:
-                return int(reader[-1][0]) + 1
+                return int(float(reader[-1][0])) + 1
             else:
                 return 3
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError):
         return 3
 
     
@@ -50,8 +50,12 @@ def atualizar_estoque(codigo, nova_quantidade):
 
     for produto in produtos:
         if produto[0] == codigo:
-            produto[4] = str(nova_quantidade)
-            produto[3] = str(float(produto[2]) * int(nova_quantidade))
+            try:
+                produto[4] = str(nova_quantidade)
+                produto[3] = str(float(produto[2]) * int(nova_quantidade))
+            except ValueError:
+                messagebox.showerror("Erro", "Erro ao atualizar o estoque. Verifique os valores numéricos.")
+                return
 
     with open(arquivos["estoque"], "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -156,49 +160,11 @@ def registrar_entrada():
         return
     quantidade_adicionada = int(quantidade_adicionada)
 
-    nova_quantidade = int(produto[4]) + quantidade_adicionada
-    data = datetime.now().strftime("%H:%M %d/%m/%Y")
-
-    with open(arquivos["estoque"], "r", encoding="utf-8") as f:
-        reader = csv.reader(f)
-        linhas = list(reader)
-
-    valor_un = None
-    for linha in linhas:
-        if linha[0] == codigo:
-            valor_un = float(linha[2])
-            break
-
-    if valor_un is None:
-        messagebox.showerror("Erro", "Código do produto não encontrado no estoque!")
+    try:
+        nova_quantidade = int(produto[4]) + quantidade_adicionada
+    except ValueError:
+        messagebox.showerror("Erro", "Erro ao calcular a nova quantidade. Verifique os valores no estoque.")
         return
-
-    valor_total = valor_un * quantidade_adicionada
-
-    confirmacao = messagebox.askyesno(
-        "Confirmação",
-        f"Você deseja registrar a entrada nesse produto?\n\n"
-        f"Código: {codigo}\n"
-        f"Descrição: {produto[1]}\n"
-        f"Quantidade a adicionar: {quantidade_adicionada}\n"
-        f"Valor Unitário: R$ {valor_un:.2f}\n"
-        f"Valor Total: R$ {valor_total:.2f}"
-    )
-
-    if confirmacao:
-        with open(arquivos["entrada"], "a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow([codigo, produto[1], quantidade_adicionada, valor_un, valor_total, data])
-
-        atualizar_estoque(codigo, nova_quantidade)
-        messagebox.showinfo(
-            "Sucesso",
-            f"Entrada registrada e estoque atualizado!\n"
-            f"{produto[1]} | Quantidade: {nova_quantidade}"
-        )
-        
-        codigo_entry.delete(0, tk.END)
-        quantidade_entrada_entry.delete(0, tk.END)
         
 
 def registrar_saida():
@@ -218,43 +184,14 @@ def registrar_saida():
         return
 
     quantidade_retirada = quantidade_saida_entry.get().strip()
-    if not quantidade_retirada.isdigit():
-        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro.")
+    if not quantidade_retirada.isdigit() or int(quantidade_retirada) <= 0:
+        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro maior que zero.")
         return
     quantidade_retirada = int(quantidade_retirada)
 
     if quantidade_retirada > int(produto[4]):
         messagebox.showerror("Erro", "Quantidade insuficiente no estoque!")
         return
-
-    nova_quantidade = int(produto[4]) - quantidade_retirada
-    data = datetime.now().strftime("%H:%M %d/%m/%Y")
-
-    confirmacao = messagebox.askyesno(
-        "Confirmação",
-        f"Você deseja registrar a saída deste produto?\n\n"
-        f"Código: {codigo}\n"
-        f"Descrição: {produto[1]}\n"
-        f"Quantidade a retirar: {quantidade_retirada}\n"
-        f"Solicitante: {solicitante}\n"
-        f"Quantidade restante: {nova_quantidade}"
-    )
-
-    if confirmacao:
-        with open(arquivos["saida"], "a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow([codigo, produto[1], quantidade_retirada, solicitante, data])
-
-        atualizar_estoque(codigo, nova_quantidade)
-        messagebox.showinfo(
-            "Sucesso",
-            f"Saída registrada e estoque atualizado!\n"
-            f"{produto[1]} | Quantidade restante: {nova_quantidade}"
-        )
-
-        codigo_saida_entry.delete(0, tk.END)
-        solicitante_entry.delete(0, tk.END)
-        quantidade_saida_entry.delete(0, tk.END)
         
         
 def exportar_conteudo():
@@ -271,8 +208,12 @@ def exportar_conteudo():
                     df.to_excel(writer, sheet_name=nome.capitalize(), index=False)
                 except FileNotFoundError:
                     messagebox.showwarning("Aviso", f"Arquivo {arquivo} não encontrado. Ignorando...")
-        
+
         df_estoque = pd.read_csv(arquivos["estoque"], encoding="utf-8")
+        if "QUANTIDADE" not in df_estoque.columns:
+            messagebox.showerror("Erro", "Coluna 'QUANTIDADE' não encontrada no estoque.")
+            return
+
         produtos_esgotados = df_estoque[df_estoque["QUANTIDADE"] == 0]
 
         with open(caminho_txt, "w", encoding="utf-8") as f:
@@ -286,8 +227,8 @@ def exportar_conteudo():
                                        f"Excel: {caminho_excel}\n"
                                        f"Produtos Esgotados: {caminho_txt}")
     except Exception as e:
-        messagebox.showerror("Erro", f"Erro ao exportar relatórios: {e}")
-    
+        messagebox.showerror("Erro", f"Erro ao exportar relatórios: {e}")  
+
 
 tabela_atual = "estoque"
 
@@ -295,20 +236,21 @@ tabela_atual = "estoque"
 def trocar_tabela(nome_tabela):
     global tabela_atual, df
 
+    if nome_tabela not in arquivos:
+        messagebox.showerror("Erro", f"Tabela {nome_tabela} não encontrada.")
+        return
+
     tabela_atual = nome_tabela
 
     try:
         df = pd.read_csv(arquivos[nome_tabela], encoding="utf-8")
-
         pandas_table.updateModel(TableModel(df))
         pandas_table.redraw()
-
         messagebox.showinfo("Tabela Atualizada", f"Agora exibindo a tabela: {nome_tabela.capitalize()}")
     except FileNotFoundError:
         messagebox.showerror("Erro", f"Arquivo da tabela {nome_tabela} não encontrado.")
     except Exception as e:
-        messagebox.showerror("Erro", f"Erro ao carregar a tabela {nome_tabela}: {e}")          
-        
+        messagebox.showerror("Erro", f"Erro ao carregar a tabela {nome_tabela}: {e}")
 
 
 def salvar_mudancas():
@@ -321,6 +263,7 @@ def salvar_mudancas():
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao salvar alterações na tabela {tabela_atual}: {e}")
     
+
 def atualizar_tabela():
     global df
     try:
@@ -448,6 +391,7 @@ cadastro_button.place(x=20, y=320, width=371, height=40)
 movimentacao_tab = ttk.Frame(notebook)
 notebook.add(movimentacao_tab, text="Movimentação")
 
+
 # Entrada
 
 titulo_entrada_label = tk.Label(master=movimentacao_tab, text="Registrar Entrada", font=("Arial", 16))
@@ -471,6 +415,7 @@ entrada_button.place(x=80, y=220, width=374, height=40)
 
 separator = ttk.Separator(movimentacao_tab, orient="vertical")
 separator.place(x=550, y=20, height=530)
+
 
 # Saída
 
