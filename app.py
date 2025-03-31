@@ -1,6 +1,5 @@
 import os
 import csv
-import shutil
 import pandas as pd
 import tkinter as tk
 from tkinter import ttk
@@ -14,6 +13,7 @@ arquivos = {
     "entrada": "Planilhas/Entrada.csv",
     "saida": "Planilhas/Saida.csv"
 }
+
 
 
 # Funções
@@ -160,11 +160,49 @@ def registrar_entrada():
         return
     quantidade_adicionada = int(quantidade_adicionada)
 
-    try:
-        nova_quantidade = int(produto[4]) + quantidade_adicionada
-    except ValueError:
-        messagebox.showerror("Erro", "Erro ao calcular a nova quantidade. Verifique os valores no estoque.")
+    nova_quantidade = int(produto[4]) + quantidade_adicionada
+    data = datetime.now().strftime("%H:%M %d/%m/%Y")
+
+    with open(arquivos["estoque"], "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        linhas = list(reader)
+
+    valor_un = None
+    for linha in linhas:
+        if linha[0] == codigo:
+            valor_un = float(linha[2])
+            break
+
+    if valor_un is None:
+        messagebox.showerror("Erro", "Código do produto não encontrado no estoque!")
         return
+
+    valor_total = valor_un * quantidade_adicionada
+
+    confirmacao = messagebox.askyesno(
+        "Confirmação",
+        f"Você deseja registrar a entrada nesse produto?\n\n"
+        f"Código: {codigo}\n"
+        f"Descrição: {produto[1]}\n"
+        f"Quantidade a adicionar: {quantidade_adicionada}\n"
+        f"Valor Unitário: R$ {valor_un:.2f}\n"
+        f"Valor Total: R$ {valor_total:.2f}"
+    )
+
+    if confirmacao:
+        with open(arquivos["entrada"], "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([codigo, produto[1], quantidade_adicionada, valor_un, valor_total, data])
+
+        atualizar_estoque(codigo, nova_quantidade)
+        messagebox.showinfo(
+            "Sucesso",
+            f"Entrada registrada e estoque atualizado!\n"
+            f"{produto[1]} | Quantidade: {nova_quantidade}"
+        )
+        
+        codigo_entry.delete(0, tk.END)
+        quantidade_entrada_entry.delete(0, tk.END)
         
 
 def registrar_saida():
@@ -184,14 +222,44 @@ def registrar_saida():
         return
 
     quantidade_retirada = quantidade_saida_entry.get().strip()
-    if not quantidade_retirada.isdigit() or int(quantidade_retirada) <= 0:
-        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro maior que zero.")
+    if not quantidade_retirada.isdigit():
+        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro.")
         return
     quantidade_retirada = int(quantidade_retirada)
 
     if quantidade_retirada > int(produto[4]):
         messagebox.showerror("Erro", "Quantidade insuficiente no estoque!")
         return
+
+    nova_quantidade = int(produto[4]) - quantidade_retirada
+    data = datetime.now().strftime("%H:%M %d/%m/%Y")
+
+    confirmacao = messagebox.askyesno(
+        "Confirmação",
+        f"Você deseja registrar a saída deste produto?\n\n"
+        f"Código: {codigo}\n"
+        f"Descrição: {produto[1]}\n"
+        f"Quantidade a retirar: {quantidade_retirada}\n"
+        f"Solicitante: {solicitante}\n"
+        f"Quantidade restante: {nova_quantidade}"
+    )
+
+    if confirmacao:
+        with open(arquivos["saida"], "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([codigo, produto[1], quantidade_retirada, solicitante, data])
+
+        atualizar_estoque(codigo, nova_quantidade)
+        messagebox.showinfo(
+            "Sucesso",
+            f"Saída registrada e estoque atualizado!\n"
+            f"{produto[1]} | Quantidade restante: {nova_quantidade}"
+        )
+
+        codigo_saida_entry.delete(0, tk.END)
+        solicitante_entry.delete(0, tk.END)
+        quantidade_saida_entry.delete(0, tk.END)
+
         
         
 def exportar_conteudo():
@@ -291,7 +359,6 @@ main.config(bg="#C1BABA")
 main.title("Almoxarifado")
 main.geometry("1100x600")   
 main.resizable(False, False)
-main.iconbitmap("favicon.ico")
 
 criar_planilhas()
 
@@ -448,4 +515,7 @@ saida_button = tk.Button(master=movimentacao_tab, text="Registrar Saída", comma
 saida_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
 saida_button.place(x=645, y=280, width=371, height=40)
 
+
 main.mainloop()
+
+# python -m PyInstaller --onefile --windowed --icon=favicon.ico --add-data "Planilhas;Planilhas" app.py
