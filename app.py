@@ -421,15 +421,15 @@ exportar_button.place(x=490, y=517, width=80, height=43)
 
 tabela_estoque_button = tk.Button(master=estoque_tab, text="Estoque", command=lambda: trocar_tabela("estoque"))
 tabela_estoque_button.config(bg="#C1BABA", fg="#000")
-tabela_estoque_button.place(x=600, y=517, width=70, height=43)
+tabela_estoque_button.place(x=607, y=517, width=70, height=43)
 
 tabela_entrada_button = tk.Button(master=estoque_tab, text="Entrada", command=lambda: trocar_tabela("entrada"))
 tabela_entrada_button.config(bg="#C1BABA", fg="#000")
-tabela_entrada_button.place(x=670, y=517, width=70, height=43)
+tabela_entrada_button.place(x=677, y=517, width=70, height=43)
 
 tabela_saida_button = tk.Button(master=estoque_tab, text="Saída", command=lambda: trocar_tabela("saida"))
 tabela_saida_button.config(bg="#C1BABA", fg="#000")
-tabela_saida_button.place(x=740, y=517, width=70, height=43)
+tabela_saida_button.place(x=747, y=517, width=70, height=43)
 
 
 
