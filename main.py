@@ -269,8 +269,7 @@ def registrar_saida():
         solicitante_entry.delete(0, tk.END)
         quantidade_saida_entry.delete(0, tk.END)
 
-        
-        
+
 def exportar_conteudo():
     pasta_saida = "Relatorios"
     os.makedirs(pasta_saida, exist_ok=True)
@@ -578,4 +577,4 @@ criar_backup_periodico()
 
 main.mainloop()
 
-# python -m PyInstaller --onefile --name=Almoxarifado --windowed --icon=favicon.ico --add-data "Planilhas;Planilhas" app.py
+# python -m PyInstaller --onefile --name=Almoxarifado --windowed --icon=favicon.ico --add-data "Planilhas;Planilhas" main.py
