@@ -21,6 +21,10 @@ arquivos = {
 # Funções
 
 def criar_planilhas():
+    """
+    Cria os arquivos CSV necessários para o funcionamento do sistema, caso não existam.
+    """
+    
     colunas = {
         "estoque": ["CODIGO", "DESCRICAO", "VALOR UN", "VALOR TOTAL", "QUANTIDADE", "DATA", "LOCALIZACAO"],
         "entrada": ["CODIGO", "DESCRICAO", "QUANTIDADE", "VALOR UN", "VALOR TOTAL", "DATA"],
@@ -35,6 +39,10 @@ def criar_planilhas():
             
             
 def obter_proximo_codigo():
+    """
+    Obtém o próximo código disponível para um novo produto.
+    """
+    
     try:
         with open(arquivos["estoque"], "r", encoding="utf-8") as f:
             reader = list(csv.reader(f))
@@ -47,6 +55,10 @@ def obter_proximo_codigo():
 
     
 def atualizar_estoque(codigo, nova_quantidade):
+    """
+    Atualiza a quantidade de um produto no estoque.
+    """
+    
     with open(arquivos["estoque"], "r", encoding="utf-8") as f:
         produtos = list(csv.reader(f))
 
@@ -65,6 +77,10 @@ def atualizar_estoque(codigo, nova_quantidade):
 
 
 def buscar_produto(codigo):
+    """
+    Busca um produto no estoque pelo código.
+    """
+    
     try:
         with open(arquivos["estoque"], "r", encoding="utf-8") as f:
             reader = csv.reader(f)
@@ -78,6 +94,10 @@ def buscar_produto(codigo):
 
 
 def pesquisar_tabela():
+    """
+    Filtra a tabela com base na entrada do usuário.
+    """
+    
     query = pesquisar_entry.get().strip().lower()
     if query:
         df_filtered = df[df.apply(lambda row: row.astype(
@@ -90,12 +110,20 @@ def pesquisar_tabela():
 
 
 def limpar_tabela(): 
+    """
+    Limpa a tabela de pesquisa e exibe todos os produtos.
+    """
+    
     pesquisar_entry.delete(0, tk.END)
     pandas_table.model.df = df
     pandas_table.redraw()
 
         
 def cadastrar_estoque():
+    """
+    Cadastra um novo produto no estoque.
+    """
+    
     codigo = obter_proximo_codigo()
 
     descricao = desc_entry.get().strip().upper()
@@ -146,6 +174,10 @@ def cadastrar_estoque():
 
             
 def registrar_entrada():
+    """
+    Registra a entrada de um produto no estoque.
+    """
+    
     codigo = codigo_entry.get().strip()
     if not codigo:
         messagebox.showerror("Erro", "O código do produto não pode ser vazio.")
@@ -214,6 +246,10 @@ def registrar_entrada():
         
 
 def registrar_saida():
+    """
+    Registra a saída de um produto do estoque.
+    """
+    
     codigo = codigo_saida_entry.get().strip()
     if not codigo:
         messagebox.showerror("Erro", "O código do produto não pode ser vazio.")
@@ -271,6 +307,10 @@ def registrar_saida():
 
 
 def exportar_conteudo():
+    """
+    Exporta o conteúdo das planilhas para um arquivo Excel e gera um relatório de produtos esgotados.
+    """
+    
     pasta_saida = "Relatorios"
     os.makedirs(pasta_saida, exist_ok=True)
     caminho_excel = os.path.join(pasta_saida, "Relatorio_Almoxarifado.xlsx")
@@ -310,6 +350,10 @@ tabela_atual = "estoque"
 
 
 def trocar_tabela(nome_tabela):
+    """
+    Troca a tabela exibida na interface gráfica.
+    """
+    
     global tabela_atual, df
 
     if nome_tabela not in arquivos:
@@ -333,6 +377,10 @@ def trocar_tabela(nome_tabela):
 
 
 def atualizar_cores_botoes():
+    """
+    Atualiza as cores dos botões de tabela com base na tabela atual.
+    """
+    
     tabela_estoque_button.config(bg="#C1BABA", fg="#000")
     tabela_entrada_button.config(bg="#C1BABA", fg="#000")
     tabela_saida_button.config(bg="#C1BABA", fg="#000")
@@ -346,6 +394,10 @@ def atualizar_cores_botoes():
 
 
 def salvar_mudancas():
+    """
+    Salva as alterações feitas na tabela atual no arquivo CSV correspondente.
+    """
+    
     try:
         df_original = pd.read_csv(arquivos[tabela_atual], encoding="utf-8")
 
@@ -369,11 +421,14 @@ def salvar_mudancas():
         
 
 def criar_backup_periodico():
+    """
+    Cria backups periódicos dos arquivos de dados e remove backups com mais de 3 dias.
+    """
+    
     pasta_backup = "Backups"
     os.makedirs(pasta_backup, exist_ok=True)
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-
     try:
         for nome, arquivo in arquivos.items():
             if os.path.exists(arquivo):
@@ -385,10 +440,26 @@ def criar_backup_periodico():
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao criar backup: {e}")
 
-    main.after(600000, criar_backup_periodico)
+    try:
+        agora = time.time()
+        for arquivo in os.listdir(pasta_backup):
+            caminho_arquivo = os.path.join(pasta_backup, arquivo)
+            if os.path.isfile(caminho_arquivo):
+                tempo_modificacao = os.path.getmtime(caminho_arquivo)
+                if (agora - tempo_modificacao) > (3 * 24 * 60 * 60):
+                    os.remove(caminho_arquivo)
+                    print(f"Backup antigo removido: {arquivo}")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao remover backups antigos: {e}")
+
+    main.after(10800000, criar_backup_periodico)
 
 
 def atualizar_tabela():
+    """
+    Atualiza a tabela atual com os dados mais recentes do arquivo CSV correspondente.
+    """
+    
     global df
     try:
         df = pd.read_csv(arquivos[tabela_atual], encoding="utf-8")
