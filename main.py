@@ -436,7 +436,7 @@ def registrar_retirada():
         else:
             return
 
-    nome_arquivo = datetime.now().strftime("%Y_%m") + ".csv"
+    nome_arquivo = f"{colaborador}_{datetime.now().strftime('%Y_%m')}.csv"
     caminho_arquivo = os.path.join(pasta_colaborador, nome_arquivo)
 
     if not os.path.exists(caminho_arquivo):
