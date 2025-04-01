@@ -326,9 +326,9 @@ def registrar_epi():
     quantidade = int(quantidade)
 
     try:
-        df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8")
-        df_epis["CA"] = df_epis["CA"].astype(str).str.strip()
-        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].str.upper().str.strip()
+        df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8", dtype={"CA": str})
+        df_epis["CA"] = df_epis["CA"].fillna("").astype(str).str.strip()
+        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].fillna("").str.upper().str.strip()
 
         epi_existente = df_epis[(df_epis["CA"] == ca) | (df_epis["DESCRICAO"] == descricao)]
 
@@ -365,11 +365,6 @@ def registrar_epi():
 
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao registrar EPI: {e}")
-
-        atualizar_tabela_epis()
-
-    except Exception as e:
-        messagebox.showerror("Erro", f"Erro ao registrar EPI: {e}")
    
      
 def registrar_retirada():
@@ -377,7 +372,7 @@ def registrar_retirada():
     Registra a retirada de um EPI por um colaborador.
     """
     colaborador = colaborador_entry.get().strip().upper()
-    identificador = ca_retirada_entry.get().strip().upper()
+    identificador = ca_retirada_entry.get().strip().upper()  # Pode ser CA ou Descrição
     quantidade_retirada = quantidade_retirada_entry.get().strip()
 
     if not colaborador or not identificador or not quantidade_retirada.isdigit():
@@ -387,9 +382,9 @@ def registrar_retirada():
     quantidade_retirada = int(quantidade_retirada)
 
     try:
-        df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8")
-        df_epis["CA"] = df_epis["CA"].astype(str).str.strip()
-        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].str.upper().str.strip()
+        df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8", dtype={"CA": str})
+        df_epis["CA"] = df_epis["CA"].fillna("").astype(str).str.strip()
+        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].fillna("").str.upper().str.strip()
 
         epi = df_epis[(df_epis["CA"] == identificador) | (df_epis["DESCRICAO"] == identificador)]
 
@@ -404,7 +399,7 @@ def registrar_retirada():
             messagebox.showerror("Erro", f"Quantidade insuficiente no estoque para o EPI '{descricao}'.")
             return
 
-        confirmacao = messagebox.askyesno(
+        confirmacao_retirada = messagebox.askyesno(
             "Confirmação",
             f"Você deseja registrar a retirada deste EPI?\n\n"
             f"Colaborador: {colaborador}\n"
@@ -413,49 +408,52 @@ def registrar_retirada():
             f"Quantidade restante: {quantidade_disponivel - quantidade_retirada}"
         )
 
-        if not confirmacao:
+        if not confirmacao_retirada:
             messagebox.showinfo("Operação Cancelada", "A retirada foi cancelada.")
             return
+
+        pasta_colaborador = os.path.join("Colaboradores", colaborador)
+        if not os.path.exists(pasta_colaborador):
+            confirmacao_pasta = messagebox.askyesno(
+                "Colaborador Não Encontrado",
+                f"A pasta para o colaborador '{colaborador}' não foi encontrada. Deseja criá-la?"
+            )
+            if confirmacao_pasta:
+                os.makedirs(pasta_colaborador, exist_ok=True)
+            else:
+                messagebox.showinfo("Operação Cancelada", "A retirada foi cancelada.")
+                return
 
         df_epis.loc[(df_epis["CA"] == identificador) | (df_epis["DESCRICAO"] == identificador), "QUANTIDADE"] = quantidade_disponivel - quantidade_retirada
         df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
         atualizar_tabela_epis()
+
+        nome_arquivo = f"{colaborador}_{datetime.now().strftime('%Y_%m')}.csv"
+        caminho_arquivo = os.path.join(pasta_colaborador, nome_arquivo)
+
+        if not os.path.exists(caminho_arquivo):
+            with open(caminho_arquivo, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(["CA", "DESCRICAO", "QTT RETIRADA", "DATA"])
+
+        data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(caminho_arquivo, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([epi.iloc[0]["CA"], descricao, quantidade_retirada, data])
+
+        messagebox.showinfo("Sucesso", f"Retirada registrada para o colaborador {colaborador}.\n"
+                                       f"Descrição: {descricao}, Quantidade: {quantidade_retirada}")
+
+        colaborador_entry.delete(0, tk.END)
+        ca_retirada_entry.delete(0, tk.END)
+        quantidade_retirada_entry.delete(0, tk.END)
 
     except FileNotFoundError:
         messagebox.showerror("Erro", "Arquivo Epis.csv não encontrado.")
         return
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao acessar o arquivo Epis.csv: {e}")
-        return
-
-    pasta_colaborador = os.path.join("Colaboradores", colaborador)
-    if not os.path.exists(pasta_colaborador):
-        criar_pasta = messagebox.askyesno("Colaborador Não Encontrado", f"A pasta para o colaborador '{colaborador}' não foi encontrada. Deseja criá-la?")
-        if criar_pasta:
-            os.makedirs(pasta_colaborador, exist_ok=True)
-        else:
-            return
-
-    nome_arquivo = f"{colaborador}_{datetime.now().strftime('%Y_%m')}.csv"
-    caminho_arquivo = os.path.join(pasta_colaborador, nome_arquivo)
-
-    if not os.path.exists(caminho_arquivo):
-        with open(caminho_arquivo, "w", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow(["CA", "DESCRICAO", "QTT RETIRADA", "DATA"])
-
-    data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(caminho_arquivo, "a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow([epi.iloc[0]["CA"], descricao, quantidade_retirada, data])
-
-    messagebox.showinfo("Sucesso", f"Retirada registrada para o colaborador {colaborador}.\n"
-                                   f"Descrição: {descricao}, Quantidade: {quantidade_retirada}")
-
-    colaborador_entry.delete(0, tk.END)
-    ca_retirada_entry.delete(0, tk.END)
-    quantidade_retirada_entry.delete(0, tk.END)
-    
+        return    
 
 def atualizar_tabela_epis():
     """
