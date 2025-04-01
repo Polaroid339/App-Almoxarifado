@@ -24,11 +24,11 @@ def criar_planilhas():
     """
     Cria os arquivos CSV necessários para o funcionamento do sistema, caso não existam.
     """
-    
     colunas = {
         "estoque": ["CODIGO", "DESCRICAO", "VALOR UN", "VALOR TOTAL", "QUANTIDADE", "DATA", "LOCALIZACAO"],
         "entrada": ["CODIGO", "DESCRICAO", "QUANTIDADE", "VALOR UN", "VALOR TOTAL", "DATA"],
-        "saida": ["CODIGO", "DESCRICAO", "QUANTIDADE", "SOLICITANTE", "DATA"]
+        "saida": ["CODIGO", "DESCRICAO", "QUANTIDADE", "SOLICITANTE", "DATA"],
+        "epis": ["CA", "DESCRICAO", "QUANTIDADE"]
     }
     os.makedirs("Planilhas", exist_ok=True)
 
@@ -36,6 +36,11 @@ def criar_planilhas():
         if not os.path.exists(arquivo):
             df = pd.DataFrame(columns=colunas[nome])
             df.to_csv(arquivo, index=False, encoding="utf-8")
+
+    # Criar o arquivo Epis.csv
+    if not os.path.exists("Planilhas/Epis.csv"):
+        df_epis = pd.DataFrame(columns=["CA", "DESCRICAO", "QUANTIDADE"])
+        df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
             
             
 def obter_proximo_codigo():
@@ -306,11 +311,171 @@ def registrar_saida():
         quantidade_saida_entry.delete(0, tk.END)
 
 
+def registrar_epi():
+    """
+    Registra um novo EPI no arquivo Epis.csv ou atualiza a quantidade de um EPI existente.
+    """
+    ca = ca_entry.get().strip()
+    descricao = descricao_entry.get().strip().upper()
+    quantidade = quantidade_entry.get().strip()
+
+    if not descricao or not quantidade.isdigit():
+        messagebox.showerror("Erro", "A Descrição deve ser preenchida e a Quantidade deve ser válida.")
+        return
+
+    quantidade = int(quantidade)
+
+    try:
+        df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8")
+        df_epis["CA"] = df_epis["CA"].astype(str).str.strip()
+        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].str.upper().str.strip()
+
+        epi_existente = df_epis[(df_epis["CA"] == ca) | (df_epis["DESCRICAO"] == descricao)]
+
+        if not epi_existente.empty:
+            adicionar_quantidade = messagebox.askyesno(
+                "EPI Já Existente",
+                f"O EPI já está registrado.\n"
+                f"CA: {epi_existente.iloc[0]['CA']}\n"
+                f"Descrição: {epi_existente.iloc[0]['DESCRICAO']}\n"
+                f"Quantidade Atual: {epi_existente.iloc[0]['QUANTIDADE']}\n\n"
+                f"Deseja adicionar {quantidade} à quantidade existente?"
+            )
+            if adicionar_quantidade:
+                nova_quantidade = int(epi_existente.iloc[0]["QUANTIDADE"]) + quantidade
+                df_epis.loc[(df_epis["CA"] == ca) | (df_epis["DESCRICAO"] == descricao), "QUANTIDADE"] = nova_quantidade
+                df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
+                atualizar_tabela_epis()
+                messagebox.showinfo("Sucesso", f"Quantidade atualizada com sucesso!\nDescrição: {descricao}, Nova Quantidade: {nova_quantidade}")
+            else:
+                messagebox.showinfo("Operação Cancelada", "A quantidade não foi alterada.")
+            return
+
+        with open("Planilhas/Epis.csv", "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([ca, descricao, quantidade])
+
+        messagebox.showinfo("Sucesso", f"EPI registrado com sucesso!\nDescrição: {descricao}, Quantidade: {quantidade}")
+
+        ca_entry.delete(0, tk.END)
+        descricao_entry.delete(0, tk.END)
+        quantidade_entry.delete(0, tk.END)
+
+        atualizar_tabela_epis()
+
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao registrar EPI: {e}")
+
+        atualizar_tabela_epis()
+
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao registrar EPI: {e}")
+   
+     
+def registrar_retirada():
+    """
+    Registra a retirada de um EPI por um colaborador.
+    """
+    colaborador = colaborador_entry.get().strip().upper()
+    identificador = ca_retirada_entry.get().strip().upper()
+    quantidade_retirada = quantidade_retirada_entry.get().strip()
+
+    if not colaborador or not identificador or not quantidade_retirada.isdigit():
+        messagebox.showerror("Erro", "Todos os campos devem ser preenchidos corretamente.")
+        return
+
+    quantidade_retirada = int(quantidade_retirada)
+
+    try:
+        df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8")
+        df_epis["CA"] = df_epis["CA"].astype(str).str.strip()
+        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].str.upper().str.strip()
+
+        epi = df_epis[(df_epis["CA"] == identificador) | (df_epis["DESCRICAO"] == identificador)]
+
+        if epi.empty:
+            messagebox.showerror("Erro", f"O EPI com CA ou Descrição '{identificador}' não foi encontrado.")
+            return
+
+        descricao = epi.iloc[0]["DESCRICAO"]
+        quantidade_disponivel = int(epi.iloc[0]["QUANTIDADE"])
+
+        if quantidade_retirada > quantidade_disponivel:
+            messagebox.showerror("Erro", f"Quantidade insuficiente no estoque para o EPI '{descricao}'.")
+            return
+
+        confirmacao = messagebox.askyesno(
+            "Confirmação",
+            f"Você deseja registrar a retirada deste EPI?\n\n"
+            f"Colaborador: {colaborador}\n"
+            f"Descrição: {descricao}\n"
+            f"Quantidade a retirar: {quantidade_retirada}\n"
+            f"Quantidade restante: {quantidade_disponivel - quantidade_retirada}"
+        )
+
+        if not confirmacao:
+            messagebox.showinfo("Operação Cancelada", "A retirada foi cancelada.")
+            return
+
+        df_epis.loc[(df_epis["CA"] == identificador) | (df_epis["DESCRICAO"] == identificador), "QUANTIDADE"] = quantidade_disponivel - quantidade_retirada
+        df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
+        atualizar_tabela_epis()
+
+    except FileNotFoundError:
+        messagebox.showerror("Erro", "Arquivo Epis.csv não encontrado.")
+        return
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao acessar o arquivo Epis.csv: {e}")
+        return
+
+    pasta_colaborador = os.path.join("Colaboradores", colaborador)
+    if not os.path.exists(pasta_colaborador):
+        criar_pasta = messagebox.askyesno("Colaborador Não Encontrado", f"A pasta para o colaborador '{colaborador}' não foi encontrada. Deseja criá-la?")
+        if criar_pasta:
+            os.makedirs(pasta_colaborador, exist_ok=True)
+        else:
+            return
+
+    nome_arquivo = datetime.now().strftime("%Y_%m") + ".csv"
+    caminho_arquivo = os.path.join(pasta_colaborador, nome_arquivo)
+
+    if not os.path.exists(caminho_arquivo):
+        with open(caminho_arquivo, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["CA", "DESCRICAO", "QTT RETIRADA", "DATA"])
+
+    data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(caminho_arquivo, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([epi.iloc[0]["CA"], descricao, quantidade_retirada, data])
+
+    messagebox.showinfo("Sucesso", f"Retirada registrada para o colaborador {colaborador}.\n"
+                                   f"Descrição: {descricao}, Quantidade: {quantidade_retirada}")
+
+    colaborador_entry.delete(0, tk.END)
+    ca_retirada_entry.delete(0, tk.END)
+    quantidade_retirada_entry.delete(0, tk.END)
+    
+
+def atualizar_tabela_epis():
+    """
+    Atualiza a tabela de EPIs com os dados mais recentes do arquivo Epis.csv.
+    """
+    global df_epis
+    try:
+        df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8")
+        epis_table.updateModel(TableModel(df_epis))
+        epis_table.redraw()
+    except FileNotFoundError:
+        messagebox.showerror("Erro", "Arquivo Epis.csv não encontrado.")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao atualizar a tabela de EPIs: {e}")
+    
+
 def exportar_conteudo():
     """
     Exporta o conteúdo das planilhas para um arquivo Excel e gera um relatório de produtos esgotados.
     """
-    
     pasta_saida = "Relatorios"
     os.makedirs(pasta_saida, exist_ok=True)
     caminho_excel = os.path.join(pasta_saida, "Relatorio_Almoxarifado.xlsx")
@@ -318,7 +483,8 @@ def exportar_conteudo():
 
     try:
         with pd.ExcelWriter(caminho_excel) as writer:
-            for nome, arquivo in arquivos.items():
+            arquivos_com_epis = {**arquivos, "epis": "Planilhas/Epis.csv"}
+            for nome, arquivo in arquivos_com_epis.items():
                 try:
                     df = pd.read_csv(arquivo, encoding="utf-8")
                     df.to_excel(writer, sheet_name=nome.capitalize(), index=False)
@@ -343,7 +509,7 @@ def exportar_conteudo():
                                        f"Excel: {caminho_excel}\n"
                                        f"Produtos Esgotados: {caminho_txt}")
     except Exception as e:
-        messagebox.showerror("Erro", f"Erro ao exportar relatórios: {e}")  
+        messagebox.showerror("Erro", f"Erro ao exportar relatórios: {e}")
 
 
 tabela_atual = "estoque"
@@ -424,13 +590,13 @@ def criar_backup_periodico():
     """
     Cria backups periódicos dos arquivos de dados e remove backups com mais de 3 dias.
     """
-    
     pasta_backup = "Backups"
     os.makedirs(pasta_backup, exist_ok=True)
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     try:
-        for nome, arquivo in arquivos.items():
+        arquivos_com_epis = {**arquivos, "epis": "Planilhas/Epis.csv"}
+        for nome, arquivo in arquivos_com_epis.items():
             if os.path.exists(arquivo):
                 nome_backup = f"{nome}_{timestamp}.csv"
                 caminho_backup = os.path.join(pasta_backup, nome_backup)
@@ -643,6 +809,60 @@ quantidade_saida_entry.place(x=645, y=230, width=371, height=30)
 saida_button = tk.Button(master=movimentacao_tab, text="Registrar Saída", command=registrar_saida)
 saida_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
 saida_button.place(x=645, y=280, width=371, height=40)
+
+
+
+# Aba EPIs
+
+epis_tab = ttk.Frame(notebook)
+notebook.add(epis_tab, text="EPIs")
+
+df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8")
+
+epis_table_frame = tk.Frame(master=epis_tab)
+epis_table_frame.place(x=20, y=20, width=650, height=530)
+
+epis_table = Table(parent=epis_table_frame, dataframe=df_epis)
+epis_table.show()
+
+ca_label = tk.Label(master=epis_tab, text="CA", font=("Arial", 12))
+ca_label.place(x=700, y=20)
+ca_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+ca_entry.place(x=700, y=50, width=300, height=30)
+
+descricao_label = tk.Label(master=epis_tab, text="Descrição", font=("Arial", 12))
+descricao_label.place(x=700, y=90)
+descricao_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+descricao_entry.place(x=700, y=120, width=300, height=30)
+
+quantidade_label = tk.Label(master=epis_tab, text="Quantidade", font=("Arial", 12))
+quantidade_label.place(x=700, y=160)
+quantidade_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+quantidade_entry.place(x=700, y=190, width=300, height=30)
+
+registrar_epi_button = tk.Button(master=epis_tab, text="Registrar EPI", command=lambda: registrar_epi())
+registrar_epi_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
+registrar_epi_button.place(x=700, y=230, width=300, height=40)
+
+ca_retirada_label = tk.Label(master=epis_tab, text="CA ou Descrição", font=("Arial", 12))
+ca_retirada_label.place(x=700, y=300)
+ca_retirada_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+ca_retirada_entry.place(x=700, y=330, width=300, height=30)
+
+quantidade_retirada_label = tk.Label(master=epis_tab, text="Quantidade", font=("Arial", 12))
+quantidade_retirada_label.place(x=700, y=370)
+quantidade_retirada_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+quantidade_retirada_entry.place(x=700, y=400, width=300, height=30)
+
+colaborador_label = tk.Label(master=epis_tab, text="Colaborador", font=("Arial", 12))
+colaborador_label.place(x=700, y=440)
+colaborador_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+colaborador_entry.place(x=700, y=470, width=300, height=30)
+
+registrar_retirada_button = tk.Button(master=epis_tab, text="Registrar Retirada", command=lambda: registrar_retirada())
+registrar_retirada_button.config(bg="#54befc", fg="#000", font=("Arial", 12))
+registrar_retirada_button.place(x=700, y=510, width=300, height=40)
+
 
 criar_backup_periodico()
 
