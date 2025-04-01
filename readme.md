@@ -23,11 +23,11 @@ Código e Data de Cadastro serão gerados dinamicamente.
 
 ### 3. **Movimentação de Produtos**
 
-- **Registrar Entrada**:
+ **Registrar Entrada**:
   - Adicione quantidades ao estoque de produtos existentes.
   - Registre a entrada com informações como código, quantidade e valor total.
 
-- **Registrar Saída**:
+ **Registrar Saída**:
   - Retire quantidades do estoque de produtos existentes.
   - Registre a saída com informações como código, quantidade e solicitante.
 
