@@ -316,8 +316,8 @@ def registrar_epi():
     Registra um novo EPI no arquivo Epis.csv ou atualiza a quantidade de um EPI existente.
     """
     ca = ca_entry.get().strip()
-    descricao = descricao_entry.get().strip().upper()
-    quantidade = quantidade_entry.get().strip()
+    descricao = descricao_epi_entry.get().strip().upper()
+    quantidade = quantidade_epi_entry.get().strip()
 
     if not descricao or not quantidade.isdigit():
         messagebox.showerror("Erro", "A Descrição deve ser preenchida e a Quantidade deve ser válida.")
@@ -358,8 +358,8 @@ def registrar_epi():
         messagebox.showinfo("Sucesso", f"EPI registrado com sucesso!\nDescrição: {descricao}, Quantidade: {quantidade}")
 
         ca_entry.delete(0, tk.END)
-        descricao_entry.delete(0, tk.END)
-        quantidade_entry.delete(0, tk.END)
+        descricao_epi_entry.delete(0, tk.END)
+        quantidade_epi_entry.delete(0, tk.END)
 
         atualizar_tabela_epis()
 
@@ -828,15 +828,15 @@ ca_label.place(x=700, y=20)
 ca_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
 ca_entry.place(x=700, y=50, width=300, height=30)
 
-descricao_label = tk.Label(master=epis_tab, text="Descrição", font=("Arial", 12))
-descricao_label.place(x=700, y=90)
-descricao_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
-descricao_entry.place(x=700, y=120, width=300, height=30)
+descricao_epi_label = tk.Label(master=epis_tab, text="Descrição", font=("Arial", 12))
+descricao_epi_label.place(x=700, y=90)
+descricao_epi_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+descricao_epi_entry.place(x=700, y=120, width=300, height=30)
 
-quantidade_label = tk.Label(master=epis_tab, text="Quantidade", font=("Arial", 12))
-quantidade_label.place(x=700, y=160)
-quantidade_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
-quantidade_entry.place(x=700, y=190, width=300, height=30)
+quantidade_epi_label = tk.Label(master=epis_tab, text="Quantidade", font=("Arial", 12))
+quantidade_epi_label.place(x=700, y=160)
+quantidade_epi_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+quantidade_epi_entry.place(x=700, y=190, width=300, height=30)
 
 registrar_epi_button = tk.Button(master=epis_tab, text="Registrar EPI", command=lambda: registrar_epi())
 registrar_epi_button.config(bg="#67F5A5", fg="#000", font=("Arial", 12))
