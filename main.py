@@ -137,19 +137,17 @@ def cadastrar_estoque():
     quantidade = quantidade_entry.get().strip()
     try:
         quantidade = float(quantidade.replace(",", "."))
-        if quantidade <= 0:
-            raise ValueError("Quantidade deve ser maior que zero.")
+
     except ValueError:
-        messagebox.showerror("Erro", "Quantidade deve ser um número válido e maior que zero.")
+        messagebox.showerror("Erro", "Quantidade deve ser um número válido.")
         return
 
     valor_un = valor_entry.get().strip()
     try:
         valor_un = float(valor_un.replace(",", "."))
-        if valor_un <= 0:
-            raise ValueError("Valor unitário deve ser maior que zero.")
+
     except ValueError:
-        messagebox.showerror("Erro", "Valor unitário deve ser um número válido e maior que zero.")
+        messagebox.showerror("Erro", "Valor unitário deve ser um número válido.")
         return
 
     localizacao = localizacao_entry.get().strip().upper()
