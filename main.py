@@ -98,11 +98,10 @@ def buscar_produto(codigo):
     return None
 
 
-def pesquisar_tabela():
+def pesquisar_tabela(event=None):
     """
     Filtra a tabela com base na entrada do usuário.
     """
-    
     query = pesquisar_entry.get().strip().lower()
     if query:
         df_filtered = df[df.apply(lambda row: row.astype(
@@ -680,6 +679,7 @@ pandas_table = Table(parent=pandas_table_table_frame, dataframe=df)
 pandas_table.show()
 
 pesquisar_entry = tk.Entry(master=estoque_tab)
+pesquisar_entry.bind("<KeyRelease>", pesquisar_tabela)
 pesquisar_entry.config(bg="#fff", fg="#000", borderwidth=3)
 pesquisar_entry.place(x=20, y=517, width=295, height=43)
 
