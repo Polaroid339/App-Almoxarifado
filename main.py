@@ -128,7 +128,6 @@ def cadastrar_estoque():
     """
     Cadastra um novo produto no estoque.
     """
-    
     codigo = obter_proximo_codigo()
 
     descricao = desc_entry.get().strip().upper()
@@ -137,16 +136,21 @@ def cadastrar_estoque():
         return
 
     quantidade = quantidade_entry.get().strip()
-    if not quantidade.isdigit():
-        messagebox.showerror("Erro", "Quantidade deve ser um número inteiro.")
+    try:
+        quantidade = float(quantidade.replace(",", "."))
+        if quantidade <= 0:
+            raise ValueError("Quantidade deve ser maior que zero.")
+    except ValueError:
+        messagebox.showerror("Erro", "Quantidade deve ser um número válido e maior que zero.")
         return
-    quantidade = int(quantidade)
 
     valor_un = valor_entry.get().strip()
     try:
-        valor_un = float(valor_un)
+        valor_un = float(valor_un.replace(",", "."))
+        if valor_un <= 0:
+            raise ValueError("Valor unitário deve ser maior que zero.")
     except ValueError:
-        messagebox.showerror("Erro", "Valor unitário deve ser um número válido.")
+        messagebox.showerror("Erro", "Valor unitário deve ser um número válido e maior que zero.")
         return
 
     localizacao = localizacao_entry.get().strip().upper()
@@ -155,7 +159,6 @@ def cadastrar_estoque():
         return
 
     data = datetime.now().strftime("%H:%M %d/%m/%Y")
-
     confirmacao = messagebox.askyesno(
         "Confirmação", f"Você deseja cadastrar o produto com código {codigo} e descrição {descricao}?"
     )
@@ -182,7 +185,6 @@ def registrar_entrada():
     """
     Registra a entrada de um produto no estoque.
     """
-    
     codigo = codigo_entry.get().strip()
     if not codigo:
         messagebox.showerror("Erro", "O código do produto não pode ser vazio.")
@@ -194,18 +196,20 @@ def registrar_entrada():
         return
 
     quantidade_adicionada = quantidade_entrada_entry.get().strip()
-    if not quantidade_adicionada.isdigit():
-        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro.")
+    try:
+        quantidade_adicionada = float(quantidade_adicionada.replace(",", "."))
+        if quantidade_adicionada <= 0:
+            raise ValueError("Quantidade deve ser maior que zero.")
+    except ValueError:
+        messagebox.showerror("Erro", "A quantidade deve ser um número válido e maior que zero.")
         return
-    quantidade_adicionada = int(quantidade_adicionada)
 
     try:
-        nova_quantidade = int(produto[4]) + quantidade_adicionada
+        nova_quantidade = float(produto[4]) + quantidade_adicionada
     except ValueError:
         messagebox.showerror("Erro", "Erro ao calcular a nova quantidade. Verifique os valores no estoque.")
         return
 
-    nova_quantidade = int(produto[4]) + quantidade_adicionada
     data = datetime.now().strftime("%H:%M %d/%m/%Y")
 
     with open(arquivos["estoque"], "r", encoding="utf-8") as f:
@@ -254,7 +258,6 @@ def registrar_saida():
     """
     Registra a saída de um produto do estoque.
     """
-    
     codigo = codigo_saida_entry.get().strip()
     if not codigo:
         messagebox.showerror("Erro", "O código do produto não pode ser vazio.")
@@ -271,17 +274,19 @@ def registrar_saida():
         return
 
     quantidade_retirada = quantidade_saida_entry.get().strip()
-    if not quantidade_retirada.isdigit() or int(quantidade_retirada) <= 0:
-        messagebox.showerror("Erro", "A quantidade deve ser um número inteiro maior que zero.")
+    try:
+        quantidade_retirada = float(quantidade_retirada.replace(",", "."))
+        if quantidade_retirada <= 0:
+            raise ValueError("Quantidade deve ser maior que zero.")
+    except ValueError:
+        messagebox.showerror("Erro", "A quantidade deve ser um número válido e maior que zero.")
         return
 
-    quantidade_retirada = int(quantidade_retirada)
-
-    if quantidade_retirada > int(produto[4]):
+    if quantidade_retirada > float(produto[4]):
         messagebox.showerror("Erro", "Quantidade insuficiente no estoque!")
         return
 
-    nova_quantidade = int(produto[4]) - quantidade_retirada
+    nova_quantidade = float(produto[4]) - quantidade_retirada
     data = datetime.now().strftime("%H:%M %d/%m/%Y")
 
     confirmacao = messagebox.askyesno(
