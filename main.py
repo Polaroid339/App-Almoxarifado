@@ -37,7 +37,6 @@ def criar_planilhas():
             df = pd.DataFrame(columns=colunas[nome])
             df.to_csv(arquivo, index=False, encoding="utf-8")
 
-    # Criar o arquivo Epis.csv
     if not os.path.exists("Planilhas/Epis.csv"):
         df_epis = pd.DataFrame(columns=["CA", "DESCRICAO", "QUANTIDADE"])
         df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
@@ -374,7 +373,7 @@ def registrar_retirada():
     Registra a retirada de um EPI por um colaborador.
     """
     colaborador = colaborador_entry.get().strip().upper()
-    identificador = ca_retirada_entry.get().strip().upper()  # Pode ser CA ou Descrição
+    identificador = ca_retirada_entry.get().strip().upper()
     quantidade_retirada = quantidade_retirada_entry.get().strip()
 
     if not colaborador or not identificador or not quantidade_retirada.isdigit():
@@ -436,7 +435,7 @@ def registrar_retirada():
         if not os.path.exists(caminho_arquivo):
             with open(caminho_arquivo, "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow(["CA", "DESCRICAO", "QTT RETIRADA", "DATA"])
+                writer.writerow(["CA", "DESCRICAO", "QTD RETIRADA", "DATA"])
 
         data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(caminho_arquivo, "a", newline="", encoding="utf-8") as f:
