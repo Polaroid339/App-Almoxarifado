@@ -611,7 +611,7 @@ def criar_backup_periodico():
             caminho_arquivo = os.path.join(pasta_backup, arquivo)
             if os.path.isfile(caminho_arquivo):
                 tempo_modificacao = os.path.getmtime(caminho_arquivo)
-                if (agora - tempo_modificacao) > (3 * 24 * 60 * 60):
+                if (agora - tempo_modificacao) > (2 * 24 * 60 * 60):
                     os.remove(caminho_arquivo)
                     print(f"Backup antigo removido: {arquivo}")
     except Exception as e:
