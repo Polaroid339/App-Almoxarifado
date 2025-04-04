@@ -76,7 +76,7 @@ pip install pyinstaller
 
 2. Gere o executável:
 ```bash
-python -m PyInstaller --onefile --name=Almoxarifado --windowed --icon=favicon.ico --add-data "Planilhas;Planilhas" app.py
+python -m PyInstaller --onefile --name=Almoxarifado --windowed --add-data "Planilhas;Planilhas" main.py
 ```
 
 O executável será gerado na pasta `dist/` com o nome Almoxarifado.exe.
