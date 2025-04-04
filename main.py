@@ -320,18 +320,24 @@ def registrar_epi():
     descricao = descricao_epi_entry.get().strip().upper()
     quantidade = quantidade_epi_entry.get().strip()
 
-    if not descricao or not quantidade.isdigit():
-        messagebox.showerror("Erro", "A Descrição deve ser preenchida e a Quantidade deve ser válida.")
+    if not descricao or not quantidade:
+        messagebox.showerror("Erro", "A Descrição e a Quantidade devem ser preenchidas.")
         return
 
-    quantidade = int(quantidade)
+    try:
+        quantidade = float(quantidade)
+        if quantidade <= 0:
+            raise ValueError("Quantidade deve ser maior que zero.")
+    except ValueError:
+        messagebox.showerror("Erro", "A Quantidade deve ser um número válido e maior que zero.")
+        return
 
     try:
         df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8", dtype={"CA": str})
         df_epis["CA"] = df_epis["CA"].fillna("").astype(str).str.strip()
         df_epis["DESCRICAO"] = df_epis["DESCRICAO"].fillna("").str.upper().str.strip()
 
-        epi_existente = df_epis[(df_epis["CA"] == ca) | (df_epis["DESCRICAO"] == descricao)]
+        epi_existente = df_epis[(df_epis["CA"] == ca) & (df_epis["DESCRICAO"] == descricao)]
 
         if not epi_existente.empty:
             adicionar_quantidade = messagebox.askyesno(
@@ -343,13 +349,24 @@ def registrar_epi():
                 f"Deseja adicionar {quantidade} à quantidade existente?"
             )
             if adicionar_quantidade:
-                nova_quantidade = int(epi_existente.iloc[0]["QUANTIDADE"]) + quantidade
-                df_epis.loc[(df_epis["CA"] == ca) | (df_epis["DESCRICAO"] == descricao), "QUANTIDADE"] = nova_quantidade
+                nova_quantidade = float(epi_existente.iloc[0]["QUANTIDADE"]) + quantidade
+                df_epis.loc[(df_epis["CA"] == ca) & (df_epis["DESCRICAO"] == descricao), "QUANTIDADE"] = nova_quantidade
                 df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
                 atualizar_tabela_epis()
                 messagebox.showinfo("Sucesso", f"Quantidade atualizada com sucesso!\nDescrição: {descricao}, Nova Quantidade: {nova_quantidade}")
             else:
                 messagebox.showinfo("Operação Cancelada", "A quantidade não foi alterada.")
+            return
+
+        confirmacao = messagebox.askyesno(
+            "Confirmação",
+            f"Você deseja registrar este EPI?\n\n"
+            f"CA: {ca if ca else 'Sem CA'}\n"
+            f"Descrição: {descricao}\n"
+            f"Quantidade: {quantidade}"
+        )
+        if not confirmacao:
+            messagebox.showinfo("Operação Cancelada", "O registro do EPI foi cancelado.")
             return
 
         with open("Planilhas/Epis.csv", "a", newline="", encoding="utf-8") as f:
@@ -380,7 +397,7 @@ def registrar_retirada():
         messagebox.showerror("Erro", "Todos os campos devem ser preenchidos corretamente.")
         return
 
-    quantidade_retirada = int(quantidade_retirada)
+    quantidade_retirada = float(quantidade_retirada)
 
     try:
         df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8", dtype={"CA": str})
@@ -698,7 +715,7 @@ refresh_button.place(x=851, y=517, width=80, height=43)
 
 exportar_button = tk.Button(master=estoque_tab, text="Exportar", command=exportar_conteudo)
 exportar_button.config(bg="#FFFF00", fg="#000")
-exportar_button.place(x=490, y=517, width=80, height=43)
+exportar_button.place(x=494, y=517, width=80, height=43)
 
 tabela_estoque_button = tk.Button(master=estoque_tab, text="Estoque", command=lambda: trocar_tabela("estoque"))
 tabela_estoque_button.config(bg="#C1BABA", fg="#000")
