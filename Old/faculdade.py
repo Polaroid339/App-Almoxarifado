@@ -662,58 +662,6 @@ def atualizar_tabela():
         messagebox.showerror("Erro", f"Erro ao atualizar a tabela {tabela_atual}: {e}")
 
 
-def validar_login():
-    """
-    Função chamada ao clicar no botão de login.
-    """
-    usuario = usuario_entry.get().strip()
-    senha = senha_entry.get().strip()
-
-    if usuario == "admin" and senha == "1234":
-        messagebox.showinfo("Sucesso", "Login realizado com sucesso!")
-        root.destroy()
-
-    else:
-        messagebox.showerror("Erro", "Usuário ou senha inválidos!")
-
-
-def fechar_login():
-    """
-    Função chamada ao fechar a janela de login.
-    Encerra o programa completamente.
-    """
-    root.destroy()
-    exit()
-
-
-# Configuração da janela de login
-
-root = tk.Tk()
-root.title("Almoxarifado")
-root.geometry("300x230")
-root.resizable(False, False)
-
-root.protocol("WM_DELETE_WINDOW", fechar_login)
-
-titulo_label = tk.Label(root, text="Login", font=("Arial", 16))
-titulo_label.pack(pady=10)
-
-usuario_label = tk.Label(root, text="Usuário:", font=("Arial", 12))
-usuario_label.pack()
-usuario_entry = tk.Entry(root, font=("Arial", 12))
-usuario_entry.pack(pady=5)
-
-senha_label = tk.Label(root, text="Senha:", font=("Arial", 12))
-senha_label.pack()
-senha_entry = tk.Entry(root, font=("Arial", 12), show="*")
-senha_entry.pack(pady=5)
-
-login_button = tk.Button(root, text="Entrar", font=("Arial", 12), bg="#67F5A5", command=validar_login)
-login_button.pack(pady=10)
-
-root.mainloop()
-
-
 
 # Configuração da janela principal
 
@@ -729,6 +677,7 @@ criar_planilhas()
 
 notebook = ttk.Notebook(main)
 notebook.pack(expand=True, fill="both")
+
 
 
 # Aba Estoque
