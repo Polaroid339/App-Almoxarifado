@@ -722,7 +722,7 @@ def fechar_login():
     Encerra o programa completamente.
     """
     root.destroy()
-    exit()
+    os._exit(0)
 
 
 # Configuração da janela de login
