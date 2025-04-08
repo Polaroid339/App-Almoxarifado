@@ -597,6 +597,16 @@ def criar_backup_periodico():
     pasta_backup = "Backups"
     os.makedirs(pasta_backup, exist_ok=True)
 
+    arquivo_ultimo_backup = os.path.join(pasta_backup, "ultimo_backup.txt")
+
+    agora = time.time()
+    if os.path.exists(arquivo_ultimo_backup):
+        with open(arquivo_ultimo_backup, "r", encoding="utf-8") as f:
+            ultimo_backup = float(f.read().strip())
+        if (agora - ultimo_backup) < 3 * 60 * 60:
+            main.after(10800000, criar_backup_periodico)
+            return
+
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     try:
         arquivos_com_epis = {**arquivos, "epis": "Planilhas/Epis.csv"}
@@ -606,17 +616,19 @@ def criar_backup_periodico():
                 caminho_backup = os.path.join(pasta_backup, nome_backup)
                 shutil.copy(arquivo, caminho_backup)
 
+        with open(arquivo_ultimo_backup, "w", encoding="utf-8") as f:
+            f.write(str(agora))
+
         print(f"Backup criado com sucesso em {timestamp}")
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao criar backup: {e}")
 
     try:
-        agora = time.time()
         for arquivo in os.listdir(pasta_backup):
             caminho_arquivo = os.path.join(pasta_backup, arquivo)
             if os.path.isfile(caminho_arquivo):
                 tempo_modificacao = os.path.getmtime(caminho_arquivo)
-                if (agora - tempo_modificacao) > (2 * 24 * 60 * 60):
+                if (agora - tempo_modificacao) > (3 * 24 * 60 * 60):
                     os.remove(caminho_arquivo)
                     print(f"Backup antigo removido: {arquivo}")
     except Exception as e:
