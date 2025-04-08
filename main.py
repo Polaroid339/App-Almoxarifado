@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
+from usuarios import usuarios
 from pandastable import Table, TableModel
 
 
@@ -26,8 +27,8 @@ def criar_planilhas():
     """
     colunas = {
         "estoque": ["CODIGO", "DESCRICAO", "VALOR UN", "VALOR TOTAL", "QUANTIDADE", "DATA", "LOCALIZACAO"],
-        "entrada": ["CODIGO", "DESCRICAO", "QUANTIDADE", "VALOR UN", "VALOR TOTAL", "DATA"],
-        "saida": ["CODIGO", "DESCRICAO", "QUANTIDADE", "SOLICITANTE", "DATA"],
+        "entrada": ["CODIGO", "DESCRICAO", "QUANTIDADE", "VALOR UN", "VALOR TOTAL", "DATA", "ID"],
+        "saida": ["CODIGO", "DESCRICAO", "QUANTIDADE", "SOLICITANTE", "DATA", "ID"],
         "epis": ["CA", "DESCRICAO", "QUANTIDADE"]
     }
     os.makedirs("Planilhas", exist_ok=True)
@@ -208,25 +209,12 @@ def registrar_entrada():
 
     data = datetime.now().strftime("%H:%M %d/%m/%Y")
 
-    with open(arquivos["estoque"], "r", encoding="utf-8") as f:
-        reader = csv.reader(f)
-        linhas = list(reader)
-
-    valor_un = None
-    for linha in linhas:
-        if linha[0] == codigo:
-            valor_un = float(linha[2])
-            break
-
-    if valor_un is None:
-        messagebox.showerror("Erro", "Código do produto não encontrado no estoque!")
-        return
-
+    valor_un = float(produto[2])
     valor_total = valor_un * quantidade_adicionada
 
     confirmacao = messagebox.askyesno(
         "Confirmação",
-        f"Você deseja registrar a entrada nesse produto?\n\n"
+        f"Você deseja registrar a entrada neste produto?\n\n"
         f"Código: {codigo}\n"
         f"Descrição: {produto[1]}\n"
         f"Quantidade a adicionar: {quantidade_adicionada}\n"
@@ -237,7 +225,7 @@ def registrar_entrada():
     if confirmacao:
         with open(arquivos["entrada"], "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow([codigo, produto[1], quantidade_adicionada, valor_un, valor_total, data])
+            writer.writerow([codigo, produto[1], quantidade_adicionada, valor_un, valor_total, data, operador_logado_id])
 
         atualizar_estoque(codigo, nova_quantidade)
         messagebox.showinfo(
@@ -245,7 +233,7 @@ def registrar_entrada():
             f"Entrada registrada e estoque atualizado!\n"
             f"{produto[1]} | Quantidade: {nova_quantidade}"
         )
-        
+
         codigo_entry.delete(0, tk.END)
         quantidade_entrada_entry.delete(0, tk.END)
         
@@ -298,7 +286,7 @@ def registrar_saida():
     if confirmacao:
         with open(arquivos["saida"], "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow([codigo, produto[1], quantidade_retirada, solicitante, data])
+            writer.writerow([codigo, produto[1], quantidade_retirada, solicitante, data, operador_logado_id])
 
         atualizar_estoque(codigo, nova_quantidade)
         messagebox.showinfo(
@@ -635,6 +623,43 @@ def criar_backup_periodico():
         messagebox.showerror("Erro", f"Erro ao remover backups antigos: {e}")
 
     main.after(10800000, criar_backup_periodico)
+    
+    
+def corrigir_planilhas():
+    """
+    Corrige as planilhas de entrada e saída, preenchendo colunas vazias com '1'.
+    """
+    planilhas = ["entrada", "saida"]
+    colunas_esperadas = {
+        "entrada": ["CODIGO", "DESCRICAO", "QUANTIDADE", "VALOR UN", "VALOR TOTAL", "DATA", "ID"],
+        "saida": ["CODIGO", "DESCRICAO", "QUANTIDADE", "SOLICITANTE", "DATA", "ID"]
+    }
+
+    for planilha in planilhas:
+        caminho = arquivos[planilha]
+        try:
+            with open(caminho, "r", encoding="utf-8") as f:
+                linhas = list(csv.reader(f))
+
+            if len(linhas) > 0 and len(linhas[0]) != len(colunas_esperadas[planilha]):
+                linhas[0] = colunas_esperadas[planilha]
+
+            linhas_corrigidas = []
+            for linha in linhas:
+                if len(linha) < len(colunas_esperadas[planilha]):
+                    linha.extend(["1"] * (len(colunas_esperadas[planilha]) - len(linha)))
+                elif len(linha) > len(colunas_esperadas[planilha]):
+                    linha = linha[:len(colunas_esperadas[planilha])]
+                linhas_corrigidas.append(linha)
+
+            with open(caminho, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerows(linhas_corrigidas)
+
+        except FileNotFoundError:
+            print(f"Arquivo {caminho} não encontrado. Ignorando...")
+        except Exception as e:
+            print(f"Erro ao corrigir {caminho}: {e}")
 
 
 def atualizar_tabela():
@@ -666,13 +691,15 @@ def validar_login():
     """
     Função chamada ao clicar no botão de login.
     """
+    global operador_logado_id
+
     usuario = usuario_entry.get().strip()
     senha = senha_entry.get().strip()
 
-    if usuario == "admin" and senha == "1234":
-        messagebox.showinfo("Sucesso", "Login realizado com sucesso!")
+    if usuario in usuarios and senha == usuarios[usuario]["senha"]:
+        operador_logado_id = usuarios[usuario]["id"]
+        messagebox.showinfo("Sucesso", f"Login realizado com sucesso!\nOperador ID: {operador_logado_id}")
         root.destroy()
-
     else:
         messagebox.showerror("Erro", "Usuário ou senha inválidos!")
 
@@ -724,6 +751,9 @@ main.geometry("1100x600")
 main.resizable(False, False)
 
 criar_planilhas()
+criar_backup_periodico()
+corrigir_planilhas()
+
 
 # Criando o sistema de abas
 
@@ -932,7 +962,6 @@ registrar_retirada_button.config(bg="#54befc", fg="#000", font=("Arial", 12))
 registrar_retirada_button.place(x=700, y=510, width=300, height=40)
 
 
-criar_backup_periodico()
 
 main.mainloop()
 
