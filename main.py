@@ -723,6 +723,12 @@ def fechar_login():
     """
     root.destroy()
     os._exit(0)
+    
+
+def fechar_aplicacao():
+    if messagebox.askyesno("Confirmação", "Deseja realmente sair?"):
+        main.destroy()
+        os._exit(0)
 
 
 # Configuração da janela de login
@@ -761,6 +767,7 @@ main.config(bg="#C1BABA")
 main.title("Almoxarifado")
 main.geometry("1100x600")   
 main.resizable(False, False)
+main.protocol("WM_DELETE_WINDOW", fechar_aplicacao)
 
 criar_planilhas()
 criar_backup_periodico()
