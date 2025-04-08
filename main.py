@@ -461,6 +461,7 @@ def registrar_retirada():
         messagebox.showerror("Erro", f"Erro ao acessar o arquivo Epis.csv: {e}")
         return    
 
+
 def atualizar_tabela_epis():
     """
     Atualiza a tabela de EPIs com os dados mais recentes do arquivo Epis.csv.
@@ -721,11 +722,16 @@ def fechar_login():
     Função chamada ao fechar a janela de login.
     Encerra o programa completamente.
     """
-    root.destroy()
-    os._exit(0)
+    if messagebox.askyesno("Confirmação", "Deseja realmente sair?"):
+        root.destroy()
+        os._exit(0)
     
 
 def fechar_aplicacao():
+    """
+    Função chamada ao fechar a janela principal.
+    Encerra o programa completamente.
+    """
     if messagebox.askyesno("Confirmação", "Deseja realmente sair?"):
         main.destroy()
         os._exit(0)
@@ -767,6 +773,7 @@ main.config(bg="#C1BABA")
 main.title("Almoxarifado")
 main.geometry("1100x600")   
 main.resizable(False, False)
+
 main.protocol("WM_DELETE_WINDOW", fechar_aplicacao)
 
 criar_planilhas()
