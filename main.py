@@ -4,8 +4,7 @@ import time
 import shutil
 import pandas as pd
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 from datetime import datetime
 from usuarios import usuarios
 from pandastable import Table, TableModel
@@ -405,6 +404,18 @@ def registrar_retirada():
             messagebox.showerror("Erro", f"Quantidade insuficiente no estoque para o EPI '{descricao}'.")
             return
 
+        pasta_colaborador = os.path.join("Colaboradores", colaborador)
+        if not os.path.exists(pasta_colaborador):
+            confirmacao_pasta = messagebox.askyesno(
+                "Colaborador Não Encontrado",
+                f"A pasta para o colaborador '{colaborador}' não foi encontrada. Deseja criá-la?"
+            )
+            if confirmacao_pasta:
+                os.makedirs(pasta_colaborador, exist_ok=True)
+            else:
+                messagebox.showinfo("Operação Cancelada", "A retirada foi cancelada.")
+                return
+
         confirmacao_retirada = messagebox.askyesno(
             "Confirmação",
             f"Você deseja registrar a retirada deste EPI?\n\n"
@@ -418,17 +429,6 @@ def registrar_retirada():
             messagebox.showinfo("Operação Cancelada", "A retirada foi cancelada.")
             return
 
-        pasta_colaborador = os.path.join("Colaboradores", colaborador)
-        if not os.path.exists(pasta_colaborador):
-            confirmacao_pasta = messagebox.askyesno(
-                "Colaborador Não Encontrado",
-                f"A pasta para o colaborador '{colaborador}' não foi encontrada. Deseja criá-la?"
-            )
-            if confirmacao_pasta:
-                os.makedirs(pasta_colaborador, exist_ok=True)
-            else:
-                messagebox.showinfo("Operação Cancelada", "A retirada foi cancelada.")
-                return
 
         df_epis.loc[(df_epis["CA"] == identificador) | (df_epis["DESCRICAO"] == identificador), "QUANTIDADE"] = quantidade_disponivel - quantidade_retirada
         df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
