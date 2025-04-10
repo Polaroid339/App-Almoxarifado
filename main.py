@@ -384,18 +384,25 @@ def registrar_retirada():
     identificador = ca_retirada_entry.get().strip().upper()
     quantidade_retirada = quantidade_retirada_entry.get().strip()
 
-    if not colaborador or not identificador or not quantidade_retirada.isdigit():
-        messagebox.showerror("Erro", "Todos os campos devem ser preenchidos corretamente.")
+    if not colaborador or not identificador:
+        messagebox.showerror("Erro", "Colaborador e CA/Descrição devem ser preenchidos.")
         return
-
-    quantidade_retirada = float(quantidade_retirada)
+        
+    try:
+        quantidade_retirada = float(quantidade_retirada)
+        if quantidade_retirada <= 0:
+            raise ValueError("Quantidade deve ser maior que zero.")
+    except ValueError:
+        messagebox.showerror("Erro", "A quantidade deve ser um número válido e maior que zero.")
+        return
 
     try:
         df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8", dtype={"CA": str})
-        df_epis["CA"] = df_epis["CA"].fillna("").astype(str).str.strip()
-        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].fillna("").str.upper().str.strip()
+        df_epis["CA"] = df_epis["CA"].fillna("").astype(str).str.strip().str.upper()
+        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].fillna("").astype(str).str.strip().str.upper()
 
-        epi = df_epis[(df_epis["CA"] == identificador) | (df_epis["DESCRICAO"] == identificador)]
+        epi = df_epis[(df_epis["CA"].str.upper() == identificador) | 
+                      (df_epis["DESCRICAO"].str.upper() == identificador)]
 
         if epi.empty:
             messagebox.showerror("Erro", f"O EPI com CA ou Descrição '{identificador}' não foi encontrado.")
@@ -432,7 +439,6 @@ def registrar_retirada():
         if not confirmacao_retirada:
             messagebox.showinfo("Operação Cancelada", "A retirada foi cancelada.")
             return
-
 
         df_epis.loc[(df_epis["CA"] == identificador) | (df_epis["DESCRICAO"] == identificador), "QUANTIDADE"] = quantidade_disponivel - quantidade_retirada
         df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
