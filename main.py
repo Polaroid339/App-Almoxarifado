@@ -300,7 +300,7 @@ def registrar_epi():
     """
     Registra um novo EPI no arquivo Epis.csv ou atualiza a quantidade de um EPI existente.
     """
-    ca = ca_entry.get().strip()
+    ca = ca_entry.get().strip().upper()
     descricao = descricao_epi_entry.get().strip().upper()
     quantidade = quantidade_epi_entry.get().strip()
 
@@ -322,32 +322,50 @@ def registrar_epi():
 
     try:
         df_epis = pd.read_csv("Planilhas/Epis.csv", encoding="utf-8", dtype={"CA": str})
-        df_epis["CA"] = df_epis["CA"].fillna("").astype(str).str.strip()
-        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].fillna("").str.upper().str.strip()
+        df_epis["CA"] = df_epis["CA"].fillna("").astype(str).str.strip().str.upper()
+        df_epis["DESCRICAO"] = df_epis["DESCRICAO"].fillna("").astype(str).str.strip().str.upper()
 
         if ca:
-            epi_existente = df_epis[df_epis["CA"] == ca]
-        else:
-            epi_existente = df_epis[(df_epis["CA"] == "") & (df_epis["DESCRICAO"] == descricao)]
+            epi_existente_ca = df_epis[df_epis["CA"] == ca]
+            if not epi_existente_ca.empty:
+                adicionar_quantidade = messagebox.askyesno(
+                    "EPI Já Existente",
+                    f"Já existe um EPI com este CA.\n"
+                    f"CA: {epi_existente_ca.iloc[0]['CA']}\n"
+                    f"Descrição: {epi_existente_ca.iloc[0]['DESCRICAO']}\n"
+                    f"Quantidade Atual: {epi_existente_ca.iloc[0]['QUANTIDADE']}\n\n"
+                    f"Deseja adicionar {quantidade} à quantidade existente?"
+                )
+                if adicionar_quantidade:
+                    nova_quantidade = float(epi_existente_ca.iloc[0]["QUANTIDADE"]) + quantidade
+                    df_epis.loc[epi_existente_ca.index, "QUANTIDADE"] = nova_quantidade
+                    df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
+                    atualizar_tabela_epis()
+                    messagebox.showinfo("Sucesso", f"Quantidade atualizada com sucesso!\nCA: {ca}, Nova Quantidade: {nova_quantidade}")
+                else:
+                    messagebox.showinfo("Operação Cancelada", "A quantidade não foi alterada.")
+                return
 
-        if not epi_existente.empty:
-            adicionar_quantidade = messagebox.askyesno(
-                "EPI Já Existente",
-                f"O EPI já está registrado.\n"
-                f"CA: {epi_existente.iloc[0]['CA']}\n"
-                f"Descrição: {epi_existente.iloc[0]['DESCRICAO']}\n"
-                f"Quantidade Atual: {epi_existente.iloc[0]['QUANTIDADE']}\n\n"
-                f"Deseja adicionar {quantidade} à quantidade existente?"
-            )
-            if adicionar_quantidade:
-                nova_quantidade = float(epi_existente.iloc[0]["QUANTIDADE"]) + quantidade
-                df_epis.loc[epi_existente.index, "QUANTIDADE"] = nova_quantidade
-                df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
-                atualizar_tabela_epis()
-                messagebox.showinfo("Sucesso", f"Quantidade atualizada com sucesso!\nDescrição: {descricao}, Nova Quantidade: {nova_quantidade}")
-            else:
-                messagebox.showinfo("Operação Cancelada", "A quantidade não foi alterada.")
-            return
+        if descricao:
+            epi_existente_desc = df_epis[df_epis["DESCRICAO"] == descricao]
+            if not epi_existente_desc.empty:
+                adicionar_quantidade = messagebox.askyesno(
+                    "EPI Já Existente",
+                    f"Já existe um EPI com esta descrição.\n"
+                    f"CA: {epi_existente_desc.iloc[0]['CA']}\n"
+                    f"Descrição: {epi_existente_desc.iloc[0]['DESCRICAO']}\n"
+                    f"Quantidade Atual: {epi_existente_desc.iloc[0]['QUANTIDADE']}\n\n"
+                    f"Deseja adicionar {quantidade} à quantidade existente?"
+                )
+                if adicionar_quantidade:
+                    nova_quantidade = float(epi_existente_desc.iloc[0]["QUANTIDADE"]) + quantidade
+                    df_epis.loc[epi_existente_desc.index, "QUANTIDADE"] = nova_quantidade
+                    df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
+                    atualizar_tabela_epis()
+                    messagebox.showinfo("Sucesso", f"Quantidade atualizada com sucesso!\nDescrição: {descricao}, Nova Quantidade: {nova_quantidade}")
+                else:
+                    messagebox.showinfo("Operação Cancelada", "A quantidade não foi alterada.")
+                return
 
         confirmacao = messagebox.askyesno(
             "Confirmação",
