@@ -150,9 +150,6 @@ def cadastrar_estoque():
         return
 
     localizacao = localizacao_entry.get().strip().upper()
-    if not localizacao:
-        messagebox.showerror("Erro", "Localização não pode ser vazia.")
-        return
 
     data = datetime.now().strftime("%H:%M %d/%m/%Y")
     confirmacao = messagebox.askyesno(
@@ -307,8 +304,12 @@ def registrar_epi():
     descricao = descricao_epi_entry.get().strip().upper()
     quantidade = quantidade_epi_entry.get().strip()
 
-    if not descricao or not quantidade:
-        messagebox.showerror("Erro", "A Descrição e a Quantidade devem ser preenchidas.")
+    if not (ca or descricao):
+        messagebox.showerror("Erro", "Você deve preencher pelo menos o CA ou a Descrição.")
+        return
+
+    if not quantidade:
+        messagebox.showerror("Erro", "A Quantidade deve ser preenchida.")
         return
 
     try:
@@ -324,7 +325,10 @@ def registrar_epi():
         df_epis["CA"] = df_epis["CA"].fillna("").astype(str).str.strip()
         df_epis["DESCRICAO"] = df_epis["DESCRICAO"].fillna("").str.upper().str.strip()
 
-        epi_existente = df_epis[(df_epis["CA"] == ca) & (df_epis["DESCRICAO"] == descricao)]
+        if ca:
+            epi_existente = df_epis[df_epis["CA"] == ca]
+        else:
+            epi_existente = df_epis[(df_epis["CA"] == "") & (df_epis["DESCRICAO"] == descricao)]
 
         if not epi_existente.empty:
             adicionar_quantidade = messagebox.askyesno(
@@ -337,7 +341,7 @@ def registrar_epi():
             )
             if adicionar_quantidade:
                 nova_quantidade = float(epi_existente.iloc[0]["QUANTIDADE"]) + quantidade
-                df_epis.loc[(df_epis["CA"] == ca) & (df_epis["DESCRICAO"] == descricao), "QUANTIDADE"] = nova_quantidade
+                df_epis.loc[epi_existente.index, "QUANTIDADE"] = nova_quantidade
                 df_epis.to_csv("Planilhas/Epis.csv", index=False, encoding="utf-8")
                 atualizar_tabela_epis()
                 messagebox.showinfo("Sucesso", f"Quantidade atualizada com sucesso!\nDescrição: {descricao}, Nova Quantidade: {nova_quantidade}")
@@ -349,7 +353,7 @@ def registrar_epi():
             "Confirmação",
             f"Você deseja registrar este EPI?\n\n"
             f"CA: {ca if ca else 'Sem CA'}\n"
-            f"Descrição: {descricao}\n"
+            f"Descrição: {descricao if descricao else 'Sem Descrição'}\n"
             f"Quantidade: {quantidade}"
         )
         if not confirmacao:
