@@ -511,8 +511,10 @@ def exportar_conteudo():
     """
     pasta_saida = "Relatorios"
     os.makedirs(pasta_saida, exist_ok=True)
-    caminho_excel = os.path.join(pasta_saida, "Relatorio_Almoxarifado.xlsx")
-    caminho_txt = os.path.join(pasta_saida, "Produtos_Esgotados.txt")
+    
+    data_atual = datetime.now().strftime("%d-%m-%Y")
+    caminho_excel = os.path.join(pasta_saida, f"Relatorio Almoxarifado {data_atual}.xlsx")
+    caminho_txt = os.path.join(pasta_saida, f"Produtos Esgotados {data_atual}.txt")
 
     try:
         with pd.ExcelWriter(caminho_excel) as writer:
@@ -532,7 +534,7 @@ def exportar_conteudo():
         produtos_esgotados = df_estoque[df_estoque["QUANTIDADE"] == 0]
 
         with open(caminho_txt, "w", encoding="utf-8") as f:
-            f.write("Relatório de Produtos Esgotados\n")
+            f.write(f"Relatório de Produtos Esgotados - {data_atual}\n")
             f.write("-" * 40 + "\n")
             for _, row in produtos_esgotados.iterrows():
                 f.write(f"Código: {row['CODIGO']} | Descrição: {row['DESCRICAO']}\n")
