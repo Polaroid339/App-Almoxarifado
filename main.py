@@ -1020,5 +1020,3 @@ registrar_retirada_button.place(x=700, y=510, width=300, height=40)
 
 
 main.mainloop()
-
-# python -m PyInstaller --onefile --name=Almoxarifado --windowed --icon=favicon.ico --add-data "Planilhas;Planilhas" main.py

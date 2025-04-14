@@ -123,11 +123,10 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Planilhas
-
 Planilhas/*
 Relatorios/*
 Backups/*
 Colaboradores/
 Colaboradores
 *.ico
+notas.txt
