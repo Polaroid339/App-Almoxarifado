@@ -62,7 +62,7 @@ Este projeto é uma aplicação de controle de almoxarifado desenvolvida em Pyth
 2. Instale os pacotes necessários usando o seguinte comando no terminal:
 
 ```bash  
-pip install pandas pandastable  
+pip install -r requirements.txt 
 ```
 
 3. Execute o sistema com o comando:
