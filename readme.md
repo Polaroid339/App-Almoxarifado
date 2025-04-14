@@ -1,121 +1,126 @@
-# Gerenciador de Almoxarifado
+# 🗃️ Sistema de Almoxarifado com Interface Gráfica
 
-Este aplicativo é um sistema de gerenciamento de almoxarifado e estoque desenvolvido em Python com interface gráfica utilizando Tkinter. Ele permite gerenciar o estoque, registrar entradas e saídas de produtos, e gerar relatórios.
+Este projeto é uma aplicação de controle de almoxarifado desenvolvida em Python com interface gráfica Tkinter. Ele permite o gerenciamento de estoque, entradas e saídas de produtos, controle de EPIs, login de usuários e geração de relatórios, tudo com manipulação de dados em arquivos .csv.
 
+---
 
-## Funcionalidades
+## 📦 Funcionalidades
 
-### 1. **Gerenciamento de Estoque**
-- Visualize os produtos cadastrados no estoque.
-- Pesquise produtos por código ou descrição.
-- Atualize as informações do estoque.
+- Cadastro de produtos no estoque  
+- Registro de entrada e saída de produtos  
+- Cadastro e retirada de EPIs  
+- Geração de relatórios em Excel e .txt  
+- Interface gráfica amigável com abas e botões  
+- Backup automático a cada 3 horas  
+- Tela de login com verificação de operador  
+- Correção automática de planilhas mal formatadas
 
-### 2. **Cadastro de Produtos**
+---
 
-- Cadastre novos produtos no estoque com as seguintes informações:
+## 🧰 Tecnologias Utilizadas
 
-  - Descrição
-  - Quantidade
-  - Valor Unitário
-  - Localização
- 
-Código e Data de Cadastro serão gerados dinamicamente.
+- Python 3.x  
+- Tkinter  
+- Pandas  
+- Pandastable  
+- CSV  
+- PyInstaller (para empacotamento em .exe)
 
-### 3. **Movimentação de Produtos**
+---
 
- **Registrar Entrada**:
-  - Adicione quantidades ao estoque de produtos existentes.
-  - Registre a entrada com informações como código, quantidade e valor total.
+## 📁 Estrutura de Pastas
 
- **Registrar Saída**:
-  - Retire quantidades do estoque de produtos existentes.
-  - Registre a saída com informações como código, quantidade e solicitante.
+- main.py: Arquivo principal do sistema  
+- Planilhas/: Armazena os arquivos .csv de estoque, entrada, saída e EPIs  
+- Colaboradores/: Contém os arquivos de registro por colaborador  
+- Relatorios/: Saída dos relatórios gerados  
+- Backups/: Cópias de segurança automáticas dos arquivos  
+- usuarios.py: Dicionário com usuários e senhas
 
-### 4. **Relatórios**
+---
 
-- Exporte os dados do estoque, entradas e saídas para um arquivo Excel.
-- Gere um relatório de produtos esgotados em formato `.txt`.
+## ▶️ Como Executar o Projeto
 
-### 5. **Filtros e Pesquisa**
+1. Verifique se o Python 3 está instalado na sua máquina.
 
-- Pesquise produtos no estoque por qualquer termo.
-- Limpe os filtros para visualizar todos os produtos novamente.
+2. Instale os pacotes necessários usando o seguinte comando no terminal:
 
-## Requisitos
-
-- Python 3.8 ou superior
-- Bibliotecas Python:
-  
-  - `pandas`
-  - `tkinter`
-  - `csv`
-  - `shutil`
-  - `datetime`
-  - `pandastable`
-
-Para instalar as dependências, execute:
-```bash
-pip install -r requirements.txt
+```bash  
+pip install pandas pandastable  
 ```
 
-## Como Executar
-1. Certifique-se de que a pasta Planilhas está no mesmo diretório que o arquivo app.py.
-2. Execute o arquivo app.py:
-```bash
-python app.py
+3. Execute o sistema com o comando:
+
+```bash  
+python main.py  
 ```
 
-## Gerar Executável (.exe)
+A interface gráfica será carregada com a tela de login.
 
-Para criar um executável do sistema, utilize o PyInstaller:
+---
 
-1. Instale o PyInstaller:
-```bash
-pip install pyinstaller
+## 🔐 Sistema de Login
+
+Os usuários são definidos no arquivo usuarios.py. Exemplo de estrutura:
+
+```python  
+usuarios = {
+    "admin": {"senha": "1234", "id": "001"},
+    "usuario": {"senha": "senha123", "id": "002"}
+}
 ```
 
-2. Gere o executável:
-```bash
-python -m PyInstaller --onefile --name=Almoxarifado --windowed --add-data "Planilhas;Planilhas" main.py
+Ao realizar login com sucesso, o sistema libera o acesso completo às funções.
+
+---
+
+## 🛠️ Gerar Executável .exe
+
+Se desejar empacotar a aplicação em um executável para Windows, use o PyInstaller com o seguinte comando:
+
+```bash  
+python -m PyInstaller --onefile --name=Almoxarifado --windowed --add-data "Planilhas;Planilhas" main.py  
 ```
 
-O executável será gerado na pasta `dist/` com o nome Almoxarifado.exe.
+Este comando gera um .exe na pasta dist.
 
-## Como Usar
+---
 
-### Aba Estoque
-1. Visualize os produtos cadastrados no estoque.
-2. Pesquise produtos utilizando o campo de busca.
-3. Atualize ou salve alterações feitas na tabela.
+## 📤 Relatórios Exportáveis
 
-### Aba Cadastro
-1. Preencha os campos de descrição, quantidade, valor unitário e localização.
-2. Clique no botão "Cadastrar" para adicionar o produto ao estoque.
-3. Aba Movimentação
+A opção "Exportar" gera:
 
-### Aba Movimentação
+- Um arquivo Excel com todas as planilhas (Estoque, Entrada, Saída, EPIs)  
+- Um arquivo .txt listando produtos esgotados (com quantidade igual a 0)
 
-#### - Registrar Entrada:
-1. Insira o código do produto e a quantidade a ser adicionada.
-2. Clique em "Registrar Entrada".
+Os relatórios são salvos na pasta Relatorios/.
 
-#### - Registrar Saída:
-1. Insira o código do produto, o nome do solicitante e a quantidade a ser retirada.
-2. Clique em "Registrar Saída".
+---
 
-### Relatórios
-1. Clique no botão "Exportar" na aba Estoque para gerar:
-2. Um arquivo Excel com os dados do estoque, entradas e saídas.
-3. Um arquivo .txt com os produtos esgotados.
+## 💾 Backup Automático
 
-## Melhorias Futuras
-- Adicionar autenticação de usuários;
-- Implementar alertas para estoque baixo;
-- Adicionar suporte a múltiplos idiomas;
-- Criar gráficos e relatórios visuais.
+O sistema realiza backups automáticos das planilhas a cada 3 horas e armazena na pasta Backups/. Backups com mais de 3 dias são removidos automaticamente.
 
-## Autor
-Desenvolvido por Victor Oliveira (Polaroid339).
+---
 
-## Licença
-Este projeto é licenciado sob a MIT License, mais informações em `LICENSE.TXT`
+## 🧤 Controle de EPIs
+
+- Cadastro de EPI com CA ou descrição  
+- Atualização de quantidade se o EPI já existir  
+- Registro de retiradas por colaborador  
+- Arquivo gerado por colaborador e por mês (em Colaboradores/NOME/mes.csv)
+
+---
+
+## 📝 Observações Finais
+
+- O sistema verifica se as planilhas estão corretamente formatadas ao iniciar.  
+- O campo "VALOR TOTAL" é calculado automaticamente com base no valor unitário e na quantidade.  
+- Todas as alterações feitas na tabela podem ser salvas com um clique no botão "Salvar Alterações".
+
+---
+
+## 👨‍💻 Autor
+
+Desenvolvido por Victor Oliveira.  
+Contato para dúvidas ou sugestões: github.com/Polaroid339
