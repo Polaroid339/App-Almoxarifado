@@ -28,14 +28,28 @@ Este projeto é uma aplicação de controle de almoxarifado desenvolvida em Pyth
 
 ---
 
-## 📁 Estrutura de Pastas
+## 📁 Estrutura de Arquivos
 
-- main.py: Arquivo principal do sistema  
+```
+├── Planilhas/
+│   ├── Estoque.csv
+│   ├── Entrada.csv
+│   ├── Saida.csv
+│   └── Epis.csv
+├── Colaboradores/
+├── Backups/
+├── Relatorios/
+├── usuarios.py
+└── main.py
+```
+
+
 - Planilhas/: Armazena os arquivos .csv de estoque, entrada, saída e EPIs  
 - Colaboradores/: Contém os arquivos de registro por colaborador  
-- Relatorios/: Saída dos relatórios gerados  
 - Backups/: Cópias de segurança automáticas dos arquivos  
+- Relatorios/: Saída dos relatórios gerados  
 - usuarios.py: Dicionário com usuários e senhas
+- main.py: Arquivo principal do sistema  
 
 ---
 
@@ -120,7 +134,8 @@ O sistema realiza backups automáticos das planilhas a cada 3 horas e armazena n
 
 ---
 
-## 👨‍💻 Autor
+## 👨‍💻 Autor e Licença
 
-Desenvolvido por Victor Oliveira.  
-Contato para dúvidas ou sugestões: github.com/Polaroid339
+- Desenvolvido por Victor Oliveira.  
+- Este projeto é licenciado sob a MIT License, acesse LICENSE.TXT para mais informações.
+- Contato para dúvidas ou sugestões: github.com/Polaroid339
