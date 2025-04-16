@@ -2,6 +2,8 @@
 
 Este projeto é uma aplicação de controle de almoxarifado desenvolvida em Python com interface gráfica Tkinter. Ele permite o gerenciamento de estoque, entradas e saídas de produtos, controle de EPIs, login de usuários e geração de relatórios, tudo com manipulação de dados em arquivos .csv.
 
+![image](https://github.com/user-attachments/assets/171b13c7-b60d-4c55-bc51-a2a99dacd2ec)
+
 ---
 
 ## 📦 Funcionalidades
@@ -60,7 +62,7 @@ Este projeto é uma aplicação de controle de almoxarifado desenvolvida em Pyth
 2. Instale os pacotes necessários usando o seguinte comando no terminal:
 
 ```bash  
-pip install pandas pandastable  
+pip install -r requirements.txt 
 ```
 
 3. Execute o sistema com o comando:
