@@ -767,6 +767,14 @@ def fechar_aplicacao():
         os._exit(0)
 
 
+def focar_proximo(event):
+    """
+    Move o foco para o próximo widget quando a tecla Enter é pressionada.
+    """
+    event.widget.tk_focusNext().focus()
+    return
+
+
 # Configuração da janela de login
 
 root = tk.Tk()
@@ -782,11 +790,13 @@ titulo_label.pack(pady=10)
 usuario_label = tk.Label(root, text="Usuário:", font=("Arial", 12))
 usuario_label.pack()
 usuario_entry = tk.Entry(root, font=("Arial", 12))
+usuario_entry.bind("<Return>", focar_proximo)
 usuario_entry.pack(pady=5)
 
 senha_label = tk.Label(root, text="Senha:", font=("Arial", 12))
 senha_label.pack()
 senha_entry = tk.Entry(root, font=("Arial", 12), show="*")
+senha_entry.bind("<Return>", lambda event: validar_login())
 senha_entry.pack(pady=5)
 
 login_button = tk.Button(root, text="Entrar", font=("Arial", 12), bg="#67F5A5", command=validar_login)
@@ -879,24 +889,28 @@ titulo_cadastro_label.place(x=20, y=20)
 desc_label = tk.Label(master=cadastro_tab, text="Descrição", font=("Arial", 12))
 desc_label.place(x=20, y=60)
 desc_entry = tk.Entry(master=cadastro_tab, font=("Arial", 12))
+desc_entry.bind("<Return>", focar_proximo)
 desc_entry.config(bg="#fff", fg="#000")
 desc_entry.place(x=20, y=90, width=371, height=30)
 
 quantidade_label = tk.Label(master=cadastro_tab, text="Quantidade", font=("Arial", 12))
 quantidade_label.place(x=20, y=130)
 quantidade_entry = tk.Entry(master=cadastro_tab, font=("Arial", 12))
+quantidade_entry.bind("<Return>", focar_proximo)
 quantidade_entry.config(bg="#fff", fg="#000")
 quantidade_entry.place(x=20, y=160, width=371, height=30)
 
 valor_label = tk.Label(master=cadastro_tab, text="Valor Unitário", font=("Arial", 12))
 valor_label.place(x=20, y=200)
 valor_entry = tk.Entry(master=cadastro_tab, font=("Arial", 12))
+valor_entry.bind("<Return>", focar_proximo) 
 valor_entry.config(bg="#fff", fg="#000")
 valor_entry.place(x=20, y=230, width=371, height=30)
 
 localizacao_label = tk.Label(master=cadastro_tab, text="Localização", font=("Arial", 12))
 localizacao_label.place(x=20, y=270)
 localizacao_entry = tk.Entry(master=cadastro_tab, font=("Arial", 12))
+localizacao_entry.bind("<Return>", lambda event: cadastrar_estoque())
 localizacao_entry.config(bg="#fff", fg="#000")
 localizacao_entry.place(x=20, y=300, width=371, height=30)
 
@@ -920,12 +934,14 @@ titulo_entrada_label.place(x=80, y=20)
 codigo_label = tk.Label(master=movimentacao_tab, text="Código", font=("Arial", 12))
 codigo_label.place(x=80, y=60)
 codigo_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+codigo_entry.bind("<Return>", focar_proximo)
 codigo_entry.config(bg="#fff", fg="#000")
 codigo_entry.place(x=80, y=90, width=371, height=30)
 
 quantidade_entrada_label = tk.Label(master=movimentacao_tab, text="Quantidade", font=("Arial", 12))
 quantidade_entrada_label.place(x=80, y=130)
 quantidade_entrada_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+quantidade_entrada_entry.bind("<Return>", lambda event: registrar_entrada())
 quantidade_entrada_entry.config(bg="#fff", fg="#000")
 quantidade_entrada_entry.place(x=80, y=160, width=371, height=30)
 
@@ -945,18 +961,21 @@ titulo_saida_label.place(x=645, y=20)
 codigo_saida_label = tk.Label(master=movimentacao_tab, text="Código", font=("Arial", 12))
 codigo_saida_label.place(x=645, y=60)
 codigo_saida_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+codigo_saida_entry.bind("<Return>", focar_proximo)
 codigo_saida_entry.config(bg="#fff", fg="#000")
 codigo_saida_entry.place(x=645, y=90, width=371, height=30)
 
 solicitante_label = tk.Label(master=movimentacao_tab, text="Solicitante", font=("Arial", 12))
 solicitante_label.place(x=645, y=130)
 solicitante_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+solicitante_entry.bind("<Return>", focar_proximo)
 solicitante_entry.config(bg="#fff", fg="#000")
 solicitante_entry.place(x=645, y=160, width=371, height=30)
 
 quantidade_saida_label = tk.Label(master=movimentacao_tab, text="Quantidade", font=("Arial", 12))
 quantidade_saida_label.place(x=645, y=200)
 quantidade_saida_entry = tk.Entry(master=movimentacao_tab, font=("Arial", 12))
+quantidade_saida_entry.bind("<Return>", lambda event: registrar_saida())
 quantidade_saida_entry.config(bg="#fff", fg="#000")
 quantidade_saida_entry.place(x=645, y=230, width=371, height=30)
 
@@ -982,16 +1001,19 @@ epis_table.show()
 ca_label = tk.Label(master=epis_tab, text="CA", font=("Arial", 12))
 ca_label.place(x=700, y=20)
 ca_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+ca_entry.bind("<Return>", focar_proximo)
 ca_entry.place(x=700, y=50, width=300, height=30)
 
 descricao_epi_label = tk.Label(master=epis_tab, text="Descrição", font=("Arial", 12))
 descricao_epi_label.place(x=700, y=90)
 descricao_epi_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+descricao_epi_entry.bind("<Return>", focar_proximo)
 descricao_epi_entry.place(x=700, y=120, width=300, height=30)
 
 quantidade_epi_label = tk.Label(master=epis_tab, text="Quantidade", font=("Arial", 12))
 quantidade_epi_label.place(x=700, y=160)
 quantidade_epi_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+quantidade_epi_entry.bind("<Return>", lambda event: registrar_epi())    
 quantidade_epi_entry.place(x=700, y=190, width=300, height=30)
 
 registrar_epi_button = tk.Button(master=epis_tab, text="Registrar EPI", command=lambda: registrar_epi())
@@ -1001,16 +1023,19 @@ registrar_epi_button.place(x=700, y=230, width=300, height=40)
 ca_retirada_label = tk.Label(master=epis_tab, text="CA ou Descrição", font=("Arial", 12))
 ca_retirada_label.place(x=700, y=300)
 ca_retirada_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+ca_retirada_entry.bind("<Return>", focar_proximo)
 ca_retirada_entry.place(x=700, y=330, width=300, height=30)
 
 quantidade_retirada_label = tk.Label(master=epis_tab, text="Quantidade", font=("Arial", 12))
 quantidade_retirada_label.place(x=700, y=370)
 quantidade_retirada_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+quantidade_retirada_entry.bind("<Return>", focar_proximo)
 quantidade_retirada_entry.place(x=700, y=400, width=300, height=30)
 
 colaborador_label = tk.Label(master=epis_tab, text="Colaborador", font=("Arial", 12))
 colaborador_label.place(x=700, y=440)
 colaborador_entry = tk.Entry(master=epis_tab, font=("Arial", 12))
+colaborador_entry.bind("<Return>", lambda event: registrar_retirada())
 colaborador_entry.place(x=700, y=470, width=300, height=30)
 
 registrar_retirada_button = tk.Button(master=epis_tab, text="Registrar Retirada", command=lambda: registrar_retirada())
