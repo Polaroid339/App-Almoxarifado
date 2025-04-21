@@ -6,10 +6,10 @@ import pandas as pd
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 from datetime import datetime
-from usuarios import usuarios  # Assuming usuarios.py is in the same directory
+from usuarios import usuarios  # Assume que usuarios.py está no mesmo diretório
 from pandastable import Table, TableModel
 
-# --- Configuration ---
+# --- Configuração ---
 PLANILHAS_DIR = "Planilhas"
 BACKUP_DIR = "Backups"
 COLABORADORES_DIR = "Colaboradores"
@@ -21,10 +21,10 @@ ARQUIVOS = {
     "epis": os.path.join(PLANILHAS_DIR, "Epis.csv")
 }
 
-# --- Helper Classes for Dialogs ---
+# --- Classes Auxiliares para Diálogos ---
 
 class LookupDialog(tk.Toplevel):
-    """A simple searchable lookup dialog."""
+    """Um diálogo de busca simples e pesquisável."""
     def __init__(self, parent, title, df, search_cols, return_col):
         super().__init__(parent)
         self.title(title)
@@ -37,7 +37,7 @@ class LookupDialog(tk.Toplevel):
         self.return_col = return_col
         self.result = None
 
-        # Search Frame
+        # Frame de Busca
         search_frame = ttk.Frame(self, padding="5")
         search_frame.pack(fill=tk.X)
         ttk.Label(search_frame, text="Buscar:").pack(side=tk.LEFT, padx=(0, 5))
@@ -47,7 +47,7 @@ class LookupDialog(tk.Toplevel):
         search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
         search_entry.focus_set()
 
-        # Listbox Frame
+        # Frame da Listbox
         list_frame = ttk.Frame(self)
         list_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
@@ -61,40 +61,40 @@ class LookupDialog(tk.Toplevel):
 
         self._populate_listbox(self.df_full)
 
-        # Button Frame
+        # Frame de Botões
         button_frame = ttk.Frame(self, padding="5")
         button_frame.pack(fill=tk.X)
         ttk.Button(button_frame, text="Selecionar", command=self._select_item).pack(side=tk.RIGHT, padx=5)
         ttk.Button(button_frame, text="Cancelar", command=self.destroy).pack(side=tk.RIGHT)
 
-        self.wait_window(self) # Wait until the window is closed
+        self.wait_window(self) # Espera até que a janela seja fechada
 
     def _populate_listbox(self, df):
         self.listbox.delete(0, tk.END)
-        # Adjust display format as needed
+        # Ajuste o formato de exibição conforme necessário
         for index, row in df.iterrows():
-            # Example display: Code - Description (or CA - Description for EPIs)
+            # Exemplo de exibição: Código - Descrição (ou CA - Descrição para EPIs)
             display_text = f"{row[self.return_col]} - {row.get('DESCRICAO', '')}"
             self.listbox.insert(tk.END, display_text)
 
     def _filter_list(self, *args):
         query = self.search_var.get().strip().lower()
-        df_to_search = self.df_full # Use the original df for filtering
+        df_to_search = self.df_full # Usa o df original para filtrar
         if not query:
             df_filtered = df_to_search
         else:
             try:
-                # --- CORRECTED SEARCH LOGIC ---
+                # --- LÓGICA DE BUSCA CORRIGIDA ---
                 mask = df_to_search.apply(
-                    lambda row: any(query in str(row[col]).lower() # Use 'in' for substring check
+                    lambda row: any(query in str(row[col]).lower() # Usa 'in' para verificar substring
                                     for col in self.search_cols if pd.notna(row[col])),
                     axis=1
                 )
-                # --- END CORRECTION ---
+                # --- FIM DA CORREÇÃO ---
                 df_filtered = df_to_search[mask]
             except Exception as e:
-                 print(f"Error during lookup filter: {e}") # Log error
-                 df_filtered = df_to_search # Show all on error
+                 print(f"Erro durante o filtro de busca: {e}") # Registra o erro
+                 df_filtered = df_to_search # Mostra tudo em caso de erro
 
         self._populate_listbox(df_filtered)
 
@@ -102,9 +102,9 @@ class LookupDialog(tk.Toplevel):
         selected_indices = self.listbox.curselection()
         if selected_indices:
             index = selected_indices[0]
-            # Retrieve the stored data
+            # Recupera os dados armazenados
             list_item_text = self.listbox.get(index)
-            # Extract the identifier (first part before ' - ')
+            # Extrai o identificador (primeira parte antes de ' - ')
             self.result = list_item_text.split(' - ')[0]
             self.destroy()
         else:
@@ -112,21 +112,21 @@ class LookupDialog(tk.Toplevel):
 
 
 class EditDialogBase(tk.Toplevel):
-    """Base class for edit dialogs."""
+    """Classe base para diálogos de edição."""
     def __init__(self, parent, title, item_data):
         super().__init__(parent)
         self.title(title)
         self.transient(parent)
         self.grab_set()
-        self.geometry("400x300") # Adjust as needed
+        self.geometry("400x300") # Ajuste conforme necessário
 
-        self.item_data = item_data # Dictionary with original data
-        self.updated_data = None # Will hold the result if saved
+        self.item_data = item_data # Dicionário com dados originais
+        self.updated_data = None # Conterá o resultado se salvo
 
         self.entries = {}
         self._create_widgets()
 
-        # Button Frame
+        # Frame de Botões
         button_frame = ttk.Frame(self, padding="10")
         button_frame.pack(side=tk.BOTTOM, fill=tk.X)
         ttk.Button(button_frame, text="Salvar", command=self._save).pack(side=tk.RIGHT, padx=5)
@@ -136,30 +136,30 @@ class EditDialogBase(tk.Toplevel):
         self.wait_window(self)
 
     def _create_widgets(self):
-        # To be implemented by subclasses
+        # A ser implementado pelas subclasses
         pass
 
     def _add_entry(self, frame, field_key, label_text, row, col, **kwargs):
-        """Helper to create label and entry."""
+        """Auxiliar para criar rótulo e entrada."""
         ttk.Label(frame, text=label_text + ":").grid(row=row, column=col*2, sticky=tk.W, padx=5, pady=2)
         entry = ttk.Entry(frame, **kwargs)
         entry.grid(row=row, column=col*2 + 1, sticky=tk.EW, padx=5, pady=2)
         if field_key in self.item_data:
              entry.insert(0, str(self.item_data[field_key]))
         self.entries[field_key] = entry
-        frame.columnconfigure(col*2 + 1, weight=1) # Make entry expand
+        frame.columnconfigure(col*2 + 1, weight=1) # Faz a entrada expandir
 
     def _validate_and_collect(self):
-        # To be implemented by subclasses for specific validation
+        # A ser implementado pelas subclasses para validação específica
         collected_data = {}
         for key, entry in self.entries.items():
              collected_data[key] = entry.get().strip()
-        return collected_data # Return collected data
+        return collected_data # Retorna os dados coletados
 
     def _save(self):
         try:
             self.updated_data = self._validate_and_collect()
-            if self.updated_data: # validation passed if it returned data
+            if self.updated_data: # validação passou se retornou dados
                 self.destroy()
         except ValueError as e:
             messagebox.showerror("Erro de Validação", str(e), parent=self)
@@ -170,17 +170,17 @@ class EditProductDialog(EditDialogBase):
         main_frame = ttk.Frame(self, padding="10")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        self._add_entry(main_frame, "CODIGO", "Código", 0, 0, state='readonly') # Read-only
+        self._add_entry(main_frame, "CODIGO", "Código", 0, 0, state='readonly') # Somente leitura
         self._add_entry(main_frame, "DESCRICAO", "Descrição", 1, 0)
         self._add_entry(main_frame, "VALOR UN", "Valor Unitário", 2, 0)
         self._add_entry(main_frame, "QUANTIDADE", "Quantidade", 3, 0)
         self._add_entry(main_frame, "LOCALIZACAO", "Localização", 4, 0)
-        # DATA and VALOR TOTAL are usually calculated, not directly edited here
+        # DATA e VALOR TOTAL são geralmente calculados, não editados diretamente aqui
 
     def _validate_and_collect(self):
         data = super()._validate_and_collect()
 
-        # Validation
+        # Validação
         if not data["DESCRICAO"]:
             raise ValueError("Descrição não pode ser vazia.")
 
@@ -196,7 +196,7 @@ class EditProductDialog(EditDialogBase):
         except ValueError:
             raise ValueError("Quantidade deve ser um número válido.")
 
-        # Calculate Valor Total based on updated values
+        # Calcula o Valor Total com base nos valores atualizados
         data["VALOR TOTAL"] = data["VALOR UN"] * data["QUANTIDADE"]
 
         return data
@@ -206,7 +206,7 @@ class EditEPIDialog(EditDialogBase):
         main_frame = ttk.Frame(self, padding="10")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        self._add_entry(main_frame, "CA", "CA", 0, 0) # Allow editing CA maybe? Or make readonly?
+        self._add_entry(main_frame, "CA", "CA", 0, 0) # Permitir editar CA? Ou tornar somente leitura?
         self._add_entry(main_frame, "DESCRICAO", "Descrição", 1, 0)
         self._add_entry(main_frame, "QUANTIDADE", "Quantidade", 2, 0)
 
@@ -222,77 +222,77 @@ class EditEPIDialog(EditDialogBase):
         except ValueError:
             raise ValueError("Quantidade deve ser um número válido.")
 
-        # Make sure CA/Desc are upper
+        # Garante que CA/Desc estejam em maiúsculas
         data["CA"] = data["CA"].upper()
         data["DESCRICAO"] = data["DESCRICAO"].upper()
         return data
 
 
-# --- Main Application Class ---
+# --- Classe Principal da Aplicação ---
 
 class AlmoxarifadoApp:
     def __init__(self, root, user_id):
         self.root = root
         self.operador_logado_id = user_id
         self.active_table_name = "estoque"
-        self.current_table_df = None # Holds the dataframe for the active pandastable
+        self.current_table_df = None # Armazena o dataframe para a pandastable ativa
 
         self.root.title(f"Almoxarifado - Operador: {self.operador_logado_id}")
-        self.root.geometry("1150x650") # Slightly larger for status bar
-        # self.root.config(bg="#E0E0E0") # Lighter background
-        # self.root.resizable(False, False) # Consider allowing resizing
+        self.root.geometry("1150x650") # Um pouco maior para a barra de status
+        # self.root.config(bg="#E0E0E0") # Fundo mais claro
+        # self.root.resizable(False, False) # Considere permitir redimensionamento
 
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
-        # --- CORRECTED ORDER ---
+        # --- ORDEM CORRIGIDA ---
         self._criar_pastas_e_planilhas()
         self._setup_ui()
         self._criar_backup_periodico()
         self._load_and_display_table(self.active_table_name)
 
-        # Schedule periodic backup check (e.g., every 3 hours)
-        self.root.after(10800000, self._schedule_backup) # 10800000 ms = 3 hours
+        # Agenda verificação periódica de backup (ex: a cada 3 horas)
+        self.root.after(10800000, self._schedule_backup) # 10800000 ms = 3 horas
 
     def _setup_ui(self):
-            # Style
+            # Estilo
             style = ttk.Style()
-            style.theme_use('clam') # Or 'alt', 'default', 'classic'
+            style.theme_use('clam') # Ou 'alt', 'default', 'classic'
 
-            # Main frame
+            # Frame principal
             main_frame = ttk.Frame(self.root, padding="5")
             main_frame.pack(expand=True, fill="both")
 
             self.status_var = tk.StringVar()
-            # Temporarily pack status bar at top to reserve space, then move it
+            # Empacota temporariamente a barra de status no topo para reservar espaço, depois a move
             self.status_bar = ttk.Label(main_frame, textvariable=self.status_var, relief=tk.SUNKEN, anchor=tk.W, padding="2 5")
-            self.status_bar.pack(side=tk.BOTTOM, fill=tk.X) # Pack later
+            self.status_bar.pack(side=tk.BOTTOM, fill=tk.X) # Empacota depois
 
 
-            # Notebook (Tabs)
+            # Notebook (Abas)
             self.notebook = ttk.Notebook(main_frame)
             self.notebook.pack(expand=True, fill="both", pady=(0, 5))
 
 
-            # Create Tabs (Now they can safely call _update_status)
+            # Cria Abas (Agora podem chamar _update_status com segurança)
             self._create_estoque_tab()
             self._create_cadastro_tab()
             self._create_movimentacao_tab()
             self._create_epis_tab()
 
 
-            # --- CORRECTED ORDER: Pack Status Bar at the BOTTOM now ---
-            self.status_bar.pack(side=tk.BOTTOM, fill=tk.X) # Pack it in the final desired position
+            # --- ORDEM CORRIGIDA: Empacota a Barra de Status na parte INFERIOR agora ---
+            self.status_bar.pack(side=tk.BOTTOM, fill=tk.X) # Empacota na posição final desejada
             self._update_status("Pronto.")
 
     def _create_estoque_tab(self):
         self.estoque_tab = ttk.Frame(self.notebook, padding="10")
         self.notebook.add(self.estoque_tab, text="Estoque & Tabelas")
 
-        # --- Top Controls ---
+        # --- Controles Superiores ---
         controls_frame = ttk.Frame(self.estoque_tab)
         controls_frame.pack(fill=tk.X, pady=(0, 10))
 
-        # Search
+        # Pesquisa
         search_frame = ttk.LabelFrame(controls_frame, text="Pesquisar na Tabela Atual", padding="5")
         search_frame.pack(side=tk.LEFT, padx=(0, 10))
         self.pesquisar_entry = ttk.Entry(search_frame, width=40)
@@ -301,7 +301,7 @@ class AlmoxarifadoApp:
         ttk.Button(search_frame, text="Buscar", command=self._pesquisar_tabela).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(search_frame, text="Limpar", command=self._limpar_pesquisa).pack(side=tk.LEFT)
 
-        # Table Switching
+        # Troca de Tabela
         switch_frame = ttk.LabelFrame(controls_frame, text="Visualizar Tabela", padding="5")
         switch_frame.pack(side=tk.LEFT, padx=(0, 10))
         self.btn_view_estoque = ttk.Button(switch_frame, text="Estoque", command=lambda: self._trocar_tabela_view("estoque"))
@@ -311,44 +311,44 @@ class AlmoxarifadoApp:
         self.btn_view_saida = ttk.Button(switch_frame, text="Saídas", command=lambda: self._trocar_tabela_view("saida"))
         self.btn_view_saida.pack(side=tk.LEFT, padx=2)
 
-        # Actions Frame (Right Aligned)
+        # Frame de Ações (Alinhado à Direita)
         action_frame = ttk.Frame(controls_frame)
         action_frame.pack(side=tk.RIGHT)
 
-        # Edit/Delete Frame (Grouped)
+        # Frame Editar/Excluir (Agrupado)
         edit_delete_frame = ttk.LabelFrame(action_frame, text="Item Selecionado", padding="5")
         edit_delete_frame.pack(side=tk.LEFT, padx=(0,10))
-        self.edit_button = ttk.Button(edit_delete_frame, text="Editar", command=self._edit_selected_item, state=tk.DISABLED) # Initially disabled
+        self.edit_button = ttk.Button(edit_delete_frame, text="Editar", command=self._edit_selected_item, state=tk.DISABLED) # Inicialmente desabilitado
         self.edit_button.pack(side=tk.LEFT, padx=2)
-        self.delete_button = ttk.Button(edit_delete_frame, text="Excluir", command=self._delete_selected_item, state=tk.DISABLED) # Initially disabled
+        self.delete_button = ttk.Button(edit_delete_frame, text="Excluir", command=self._delete_selected_item, state=tk.DISABLED) # Inicialmente desabilitado
         self.delete_button.pack(side=tk.LEFT, padx=2)
 
 
-        # General Actions Frame (Grouped)
+        # Frame de Ações Gerais (Agrupado)
         general_action_frame = ttk.LabelFrame(action_frame, text="Ações", padding="5")
         general_action_frame.pack(side=tk.LEFT, padx=(0, 10))
         ttk.Button(general_action_frame, text="Atualizar", command=self._atualizar_tabela_atual).pack(side=tk.LEFT, padx=2)
 
 
-        # Export Frame (Grouped)
+        # Frame de Exportação (Agrupado)
         export_frame = ttk.LabelFrame(action_frame, text="Relatórios", padding="5")
         export_frame.pack(side=tk.LEFT)
         ttk.Button(export_frame, text="Exportar", command=self._exportar_conteudo).pack(side=tk.LEFT, padx=2)
 
 
-        # --- Table Frame ---
+        # --- Frame da Tabela ---
         self.pandas_table_frame = ttk.Frame(self.estoque_tab)
         self.pandas_table_frame.pack(expand=True, fill="both")
 
-        # Create dummy table initially, will be replaced
+        # Cria tabela dummy inicialmente, será substituída
         self.pandas_table = Table(parent=self.pandas_table_frame)
         self.pandas_table.show()
-        # Disable direct editing
+        # Desabilita edição direta
         self.pandas_table.editable = False
-        # Add binding to enable/disable buttons on selection change
+        # Adiciona binding para habilitar/desabilitar botões na mudança de seleção
         self.pandas_table.bind("<<TableSelectChanged>>", self._on_table_select)
 
-        self._atualizar_cores_botoes_view() # Set initial button state
+        self._atualizar_cores_botoes_view() # Define o estado inicial do botão
 
 
     def _create_cadastro_tab(self):
@@ -356,11 +356,11 @@ class AlmoxarifadoApp:
         self.notebook.add(self.cadastro_tab, text="Cadastrar Produto")
 
         container = ttk.Frame(self.cadastro_tab)
-        container.pack(anchor=tk.CENTER) # Center the form elements
+        container.pack(anchor=tk.CENTER) # Centraliza os elementos do formulário
 
         ttk.Label(container, text="Cadastrar Novo Produto no Estoque", font="-weight bold -size 14").grid(row=0, column=0, columnspan=2, pady=(0, 20))
 
-        # Use a consistent structure for labels and entries
+        # Usa uma estrutura consistente para rótulos e entradas
         fields = [
             ("DESCRICAO", "Descrição:"),
             ("QUANTIDADE", "Quantidade:"),
@@ -372,40 +372,40 @@ class AlmoxarifadoApp:
         for i, (key, label_text) in enumerate(fields):
             ttk.Label(container, text=label_text, font="-size 12").grid(row=i+1, column=0, sticky=tk.W, padx=5, pady=5)
             entry = ttk.Entry(container, width=40)
-            entry.config(font="-size 12") # Set font size for entries
+            entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
             entry.grid(row=i+1, column=1, sticky=tk.EW, padx=5, pady=5)
-            entry.bind("<Return>", self._focar_proximo_cadastro) # Bind Enter key
+            entry.bind("<Return>", self._focar_proximo_cadastro) # Associa a tecla Enter
             self.cadastro_entries[key] = entry
 
-        # Bind last entry to the cadastrar function on Return
+        # Associa a última entrada à função cadastrar no Return
         self.cadastro_entries["LOCALIZACAO"].bind("<Return>", lambda e: self._cadastrar_estoque())
 
-        # Button
-        cadastrar_button = ttk.Button(container, text="Cadastrar Produto", command=self._cadastrar_estoque, style="Accent.TButton") # Use accent style if available
+        # Botão
+        cadastrar_button = ttk.Button(container, text="Cadastrar Produto", command=self._cadastrar_estoque, style="Accent.TButton") # Usa estilo accent se disponível
         cadastrar_button.grid(row=len(fields)+1, column=0, columnspan=2, pady=(20, 0), sticky=tk.EW)
 
-        # Make the entry column expandable
+        # Torna a coluna de entrada expansível
         container.columnconfigure(1, weight=1)
 
     def _create_movimentacao_tab(self):
         self.movimentacao_tab = ttk.Frame(self.notebook, padding="10")
         self.notebook.add(self.movimentacao_tab, text="Movimentação Estoque")
 
-        # Main Grid Layout
+        # Layout Principal em Grid
         self.movimentacao_tab.columnconfigure(0, weight=1)
-        self.movimentacao_tab.columnconfigure(1, minsize=20) # Separator space
+        self.movimentacao_tab.columnconfigure(1, minsize=20) # Espaço separador
         self.movimentacao_tab.columnconfigure(2, weight=1)
         self.movimentacao_tab.rowconfigure(0, weight=1)
 
-        # --- Entrada Frame ---
+        # --- Frame de Entrada ---
         entrada_frame = ttk.LabelFrame(self.movimentacao_tab, text="Registrar Entrada", padding="15")
         entrada_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
-        entrada_frame.columnconfigure(1, weight=1) # Make entries expand
+        entrada_frame.columnconfigure(1, weight=1) # Faz as entradas expandirem
 
-        # Entrada Widgets
+        # Widgets de Entrada
         ttk.Label(entrada_frame, text="Código:", font="-size 12").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
         self.entrada_codigo_entry = ttk.Entry(entrada_frame)
-        self.entrada_codigo_entry.config(font="-size 12") # Set font size for entries
+        self.entrada_codigo_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.entrada_codigo_entry.grid(row=0, column=1, sticky=tk.EW, padx=(0,2))
         self.entrada_codigo_entry.bind("<Return>", lambda e: self._focar_proximo(e))
 
@@ -414,26 +414,26 @@ class AlmoxarifadoApp:
 
         ttk.Label(entrada_frame, text="Qtd. Entrada:", font="-size 12").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
         self.entrada_qtd_entry = ttk.Entry(entrada_frame)
-        self.entrada_qtd_entry.config(font="-size 12") # Set font size for entries
+        self.entrada_qtd_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.entrada_qtd_entry.grid(row=1, column=1, columnspan=2, sticky=tk.EW, padx=5)
         self.entrada_qtd_entry.bind("<Return>", lambda e: self._registrar_entrada())
 
         entrada_button = ttk.Button(entrada_frame, text="Registrar Entrada", command=self._registrar_entrada, style="Accent.TButton")
         entrada_button.grid(row=2, column=0, columnspan=3, pady=(15, 5), sticky=tk.EW)
 
-        # --- Separator ---
+        # --- Separador ---
         sep = ttk.Separator(self.movimentacao_tab, orient=tk.VERTICAL)
         sep.grid(row=0, column=1, sticky="ns", padx=5, pady=5)
 
-        # --- Saida Frame ---
+        # --- Frame de Saída ---
         saida_frame = ttk.LabelFrame(self.movimentacao_tab, text="Registrar Saída", padding="15")
         saida_frame.grid(row=0, column=2, sticky="nsew", padx=(10, 0))
-        saida_frame.columnconfigure(1, weight=1) # Make entries expand
+        saida_frame.columnconfigure(1, weight=1) # Faz as entradas expandirem
 
-        # Saida Widgets
+        # Widgets de Saída
         ttk.Label(saida_frame, text="Código:", font="-size 12").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
         self.saida_codigo_entry = ttk.Entry(saida_frame)
-        self.saida_codigo_entry.config(font="-size 12") # Set font size for entries
+        self.saida_codigo_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.saida_codigo_entry.grid(row=0, column=1, sticky=tk.EW, padx=(0,2))
         self.saida_codigo_entry.bind("<Return>", lambda e: self._focar_proximo(e))
         ttk.Button(saida_frame, text="Buscar", width=8, command=lambda: self._show_product_lookup("saida")).grid(row=0, column=2, sticky=tk.W, padx=(2,5))
@@ -441,14 +441,14 @@ class AlmoxarifadoApp:
 
         ttk.Label(saida_frame, text="Solicitante:", font="-size 12").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
         self.saida_solicitante_entry = ttk.Entry(saida_frame)
-        self.saida_solicitante_entry.config(font="-size 12") # Set font size for entries
+        self.saida_solicitante_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.saida_solicitante_entry.grid(row=1, column=1, columnspan=2, sticky=tk.EW, padx=5)
         self.saida_solicitante_entry.bind("<Return>", lambda e: self._focar_proximo(e))
 
 
         ttk.Label(saida_frame, text="Qtd. Saída:", font="-size 12").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
         self.saida_qtd_entry = ttk.Entry(saida_frame)
-        self.saida_qtd_entry.config(font="-size 12") # Set font size for entries
+        self.saida_qtd_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.saida_qtd_entry.grid(row=2, column=1, columnspan=2, sticky=tk.EW, padx=5)
         self.saida_qtd_entry.bind("<Return>", lambda e: self._registrar_saida())
 
@@ -460,16 +460,16 @@ class AlmoxarifadoApp:
         self.epis_tab = ttk.Frame(self.notebook, padding="10")
         self.notebook.add(self.epis_tab, text="EPIs")
 
-        # Layout: Table on left, Forms on right
-        self.epis_tab.columnconfigure(0, weight=2) # Table area
-        self.epis_tab.columnconfigure(1, weight=1) # Forms area
+        # Layout: Tabela à esquerda, Formulários à direita
+        self.epis_tab.columnconfigure(0, weight=2) # Área da tabela
+        self.epis_tab.columnconfigure(1, weight=1) # Área dos formulários
         self.epis_tab.rowconfigure(0, weight=1)
 
-        # --- EPI Table Frame ---
+        # --- Frame da Tabela de EPIs ---
         epis_table_frame = ttk.Frame(self.epis_tab)
         epis_table_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 
-        # Controls for EPI Table
+        # Controles para a Tabela de EPIs
         epi_table_controls = ttk.Frame(epis_table_frame)
         epi_table_controls.pack(fill=tk.X, pady=(0, 5))
 
@@ -481,41 +481,41 @@ class AlmoxarifadoApp:
         self.delete_epi_button.pack(side=tk.LEFT, padx=(0, 5))
 
 
-        # EPI Pandastable
+        # Pandastable de EPIs
         self.epis_pandas_frame = ttk.Frame(epis_table_frame)
         self.epis_pandas_frame.pack(expand=True, fill="both")
-        self.epis_table = Table(parent=self.epis_pandas_frame, editable=False) # Disable direct editing
+        self.epis_table = Table(parent=self.epis_pandas_frame, editable=False) # Desabilita edição direta
         self.epis_table.show()
-        self._carregar_epis() # Initial load
+        self._carregar_epis() # Carga inicial
         self.epis_table.bind("<<TableSelectChanged>>", self._on_epi_table_select)
 
-        # --- Forms Frame (Right) ---
+        # --- Frame de Formulários (Direita) ---
         forms_frame = ttk.Frame(self.epis_tab)
         forms_frame.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
-        forms_frame.rowconfigure(1, weight=1) # Allow retirar frame to expand if needed
+        forms_frame.rowconfigure(1, weight=1) # Permite que o frame de retirar expanda se necessário
 
 
-        # --- Registrar EPI Frame ---
+        # --- Frame Registrar EPI ---
         registrar_frame = ttk.LabelFrame(forms_frame, text="Registrar / Adicionar EPI", padding="10")
         registrar_frame.pack(fill=tk.X, pady=(0, 15))
         registrar_frame.columnconfigure(1, weight=1)
 
         ttk.Label(registrar_frame, text="CA:", font="-size 12").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
         self.epi_ca_entry = ttk.Entry(registrar_frame)
-        self.epi_ca_entry.config(font="-size 12") # Set font size for entries
+        self.epi_ca_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.epi_ca_entry.grid(row=0, column=1, sticky=tk.EW, padx=5, pady=2)
         self.epi_ca_entry.bind("<Return>", lambda e: self._focar_proximo(e))
 
         ttk.Label(registrar_frame, text="Descrição:", font="-size 12").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
         self.epi_desc_entry = ttk.Entry(registrar_frame)
-        self.epi_desc_entry.config(font="-size 12") # Set font size for entries
+        self.epi_desc_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.epi_desc_entry.grid(row=1, column=1, sticky=tk.EW, padx=5, pady=2)
         self.epi_desc_entry.bind("<Return>", lambda e: self._focar_proximo(e))
 
 
         ttk.Label(registrar_frame, text="Quantidade:", font="-size 12").grid(row=2, column=0, sticky=tk.W, padx=5, pady=2)
         self.epi_qtd_entry = ttk.Entry(registrar_frame)
-        self.epi_qtd_entry.config(font="-size 12") # Set font size for entries
+        self.epi_qtd_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.epi_qtd_entry.grid(row=2, column=1, sticky=tk.EW, padx=5, pady=2)
         self.epi_qtd_entry.bind("<Return>", lambda e: self._registrar_epi())
 
@@ -523,15 +523,15 @@ class AlmoxarifadoApp:
         registrar_epi_button.grid(row=3, column=0, columnspan=2, pady=(10, 0), sticky=tk.EW)
 
 
-        # --- Retirar EPI Frame ---
+        # --- Frame Retirar EPI ---
         retirar_frame = ttk.LabelFrame(forms_frame, text="Registrar Retirada de EPI", padding="10")
-        retirar_frame.pack(fill=tk.BOTH, expand=True) # Fill remaining space
+        retirar_frame.pack(fill=tk.BOTH, expand=True) # Preenche o espaço restante
         retirar_frame.columnconfigure(1, weight=1)
 
 
         ttk.Label(retirar_frame, text="CA/Descrição:", font="-size 12").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
         self.retirar_epi_id_entry = ttk.Entry(retirar_frame)
-        self.retirar_epi_id_entry.config(font="-size 12") # Set font size for entries
+        self.retirar_epi_id_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.retirar_epi_id_entry.grid(row=0, column=1, sticky=tk.EW, padx=(0,2), pady=5)
         self.retirar_epi_id_entry.bind("<Return>", lambda e: self._focar_proximo(e))
 
@@ -540,14 +540,14 @@ class AlmoxarifadoApp:
 
         ttk.Label(retirar_frame, text="Qtd. Retirada:", font="-size 12").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
         self.retirar_epi_qtd_entry = ttk.Entry(retirar_frame)
-        self.retirar_epi_qtd_entry.config(font="-size 12") # Set font size for entries
+        self.retirar_epi_qtd_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.retirar_epi_qtd_entry.grid(row=1, column=1, columnspan=2, sticky=tk.EW, padx=5, pady=5)
         self.retirar_epi_qtd_entry.bind("<Return>", lambda e: self._focar_proximo(e))
 
 
         ttk.Label(retirar_frame, text="Colaborador:", font="-size 12").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
         self.retirar_epi_colab_entry = ttk.Entry(retirar_frame)
-        self.retirar_epi_colab_entry.config(font="-size 12") # Set font size for entries
+        self.retirar_epi_colab_entry.config(font="-size 12") # Define o tamanho da fonte para as entradas
         self.retirar_epi_colab_entry.grid(row=2, column=1, columnspan=2, sticky=tk.EW, padx=5, pady=5)
         self.retirar_epi_colab_entry.bind("<Return>", lambda e: self._registrar_retirada())
 
@@ -556,27 +556,27 @@ class AlmoxarifadoApp:
         retirar_epi_button.grid(row=3, column=0, columnspan=3, pady=(10, 5), sticky=tk.EW)
 
 
-    # --- UI Event Handlers & Helpers ---
+    # --- Manipuladores de Eventos da UI & Auxiliares ---
 
     def _update_status(self, message, error=False):
-        """Updates the status bar."""
+        """Atualiza a barra de status."""
         self.status_var.set(message)
         if error:
             self.status_bar.config(foreground="red")
         else:
             self.status_bar.config(foreground="black")
-        # print(message) # Also print to console for debugging
+        # print(message) # Também imprime no console para depuração
 
     def _focar_proximo(self, event):
-        """Move focus to the next widget on Enter key."""
+        """Move o foco para o próximo widget na tecla Enter."""
         try:
             event.widget.tk_focusNext().focus()
-        except Exception: # Ignore if no next widget
+        except Exception: # Ignora se não houver próximo widget
             pass
-        return "break" # Prevents default Enter behavior (like adding newline)
+        return "break" # Impede o comportamento padrão do Enter (como adicionar nova linha)
 
     def _focar_proximo_cadastro(self, event):
-        """Focus next specifically for cadastro fields, ordered."""
+        """Foca o próximo especificamente para campos de cadastro, ordenados."""
         widget = event.widget
         ordered_entries = [
             self.cadastro_entries["DESCRICAO"],
@@ -589,30 +589,30 @@ class AlmoxarifadoApp:
             if current_index < len(ordered_entries) - 1:
                 ordered_entries[current_index + 1].focus()
             else:
-                 # If last entry, maybe focus the button? Or call submit? Let's focus button
-                 # Assuming the button is accessible, otherwise call _cadastrar_estoque()
-                 # Find the button widget if needed, or just call the function
-                 # For simplicity here, we call the function if Return is pressed on last field
+                 # Se for a última entrada, talvez focar o botão? Ou chamar o envio? Vamos focar o botão
+                 # Assumindo que o botão está acessível, caso contrário, chama _cadastrar_estoque()
+                 # Encontra o widget do botão se necessário, ou apenas chama a função
+                 # Por simplicidade aqui, chamamos a função se Return for pressionado no último campo
                  if widget == self.cadastro_entries["LOCALIZACAO"]:
                       self._cadastrar_estoque()
-                 else: #Should not happen based on index check
+                 else: #Não deve acontecer com base na verificação do índice
                       pass
 
         except ValueError:
-             # Widget not in the expected list, try default focus next
+             # Widget não está na lista esperada, tenta o foco padrão
             try:
                  event.widget.tk_focusNext().focus()
-            except: pass # ignore further errors
+            except: pass # ignora erros adicionais
         return "break"
 
 
     def _on_table_select(self, event=None):
-        """Enable/disable edit/delete buttons based on table selection."""
+        """Habilita/desabilita botões de editar/excluir com base na seleção da tabela."""
         selected = self.pandas_table.getSelectedRowData()
-        # Assuming single selection for simplicity. Adjust if multi-select needed.
+        # Assumindo seleção única por simplicidade. Ajuste se for necessária seleção múltipla.
         if selected is not None and len(selected) == 1:
             self.edit_button.config(state=tk.NORMAL)
-            # Only allow deleting from estoque view? Or base on table type?
+            # Permitir exclusão apenas da visualização de estoque? Ou basear no tipo de tabela?
             if self.active_table_name == "estoque":
                  self.delete_button.config(state=tk.NORMAL)
             else:
@@ -623,7 +623,7 @@ class AlmoxarifadoApp:
 
 
     def _on_epi_table_select(self, event=None):
-        """Enable/disable EPI edit/delete buttons."""
+        """Habilita/desabilita botões de editar/excluir EPI."""
         selected = self.epis_table.getSelectedRowData()
         if selected is not None and len(selected) == 1:
             self.edit_epi_button.config(state=tk.NORMAL)
@@ -634,23 +634,23 @@ class AlmoxarifadoApp:
 
 
     def _pesquisar_tabela_event(self, event=None):
-        """Handler for key release in search entry."""
-        # Optional: Add a small delay here if needed to avoid searching on every keystroke
+        """Manipulador para liberação de tecla na entrada de pesquisa."""
+        # Opcional: Adicione um pequeno atraso aqui, se necessário, para evitar pesquisar a cada tecla
         self._pesquisar_tabela()
 
     def _pesquisar_tabela(self):
-        """Filters the currently displayed pandas table."""
+        """Filtra a tabela pandas atualmente exibida."""
         if self.current_table_df is None or self.pandas_table is None:
             return
         query = self.pesquisar_entry.get().strip().lower()
 
         if query:
             try:
-                # Filter based on string columns containing the query
+                # Filtra com base nas colunas de string que contêm a consulta
                 string_cols = self.current_table_df.select_dtypes(include='object').columns
                 mask = self.current_table_df[string_cols].apply(lambda col: col.str.lower().str.contains(query, na=False)).any(axis=1)
 
-                # Also try converting other columns to string and checking
+                # Também tenta converter outras colunas para string e verificar
                 other_cols = self.current_table_df.select_dtypes(exclude='object').columns
                 mask_others = self.current_table_df[other_cols].astype(str).apply(lambda col: col.str.lower().str.contains(query, na=False)).any(axis=1)
 
@@ -658,11 +658,11 @@ class AlmoxarifadoApp:
 
             except Exception as e:
                 self._update_status(f"Erro na pesquisa: {e}", error=True)
-                df_filtered = self.current_table_df # Show all on error
+                df_filtered = self.current_table_df # Mostra tudo em caso de erro
         else:
-            df_filtered = self.current_table_df # Show all if query is empty
+            df_filtered = self.current_table_df # Mostra tudo se a consulta estiver vazia
 
-        # Update the table model safely
+        # Atualiza o modelo da tabela com segurança
         try:
             self.pandas_table.updateModel(TableModel(df_filtered))
             self.pandas_table.redraw()
@@ -671,7 +671,7 @@ class AlmoxarifadoApp:
             self._update_status(f"Erro ao atualizar tabela: {e}", error=True)
 
     def _limpar_pesquisa(self):
-        """Clears the search entry and resets the table view."""
+        """Limpa a entrada de pesquisa e redefine a visualização da tabela."""
         if self.pandas_table is None or self.current_table_df is None:
             return
         self.pesquisar_entry.delete(0, tk.END)
@@ -679,31 +679,31 @@ class AlmoxarifadoApp:
             self.pandas_table.updateModel(TableModel(self.current_table_df))
             self.pandas_table.redraw()
             self._update_status(f"Exibindo todos os {len(self.current_table_df)} registros.")
-            self._on_table_select() # Reset button states
+            self._on_table_select() # Redefine os estados dos botões
         except Exception as e:
              self._update_status(f"Erro ao limpar pesquisa: {e}", error=True)
 
 
     def _atualizar_cores_botoes_view(self):
-        """Highlights the button for the currently viewed table."""
+        """Destaca o botão da tabela atualmente visualizada."""
         buttons = {
             "estoque": self.btn_view_estoque,
             "entrada": self.btn_view_entrada,
             "saida": self.btn_view_saida
         }
         for name, button in buttons.items():
-             # Check if button exists before configuring
+             # Verifica se o botão existe antes de configurar
             if hasattr(self, button.winfo_name().replace("!button", "btn_view_" + name)):
                 if name == self.active_table_name:
-                     button.config(style="Accent.TButton") # Use accent style for active
+                     button.config(style="Accent.TButton") # Usa estilo accent para ativo
                 else:
-                     button.config(style="TButton") # Default style
+                     button.config(style="TButton") # Estilo padrão
 
 
-    # --- Data Loading and File Operations ---
+    # --- Carregamento de Dados e Operações de Arquivo ---
 
     def _criar_pastas_e_planilhas(self):
-        """Creates necessary directories and CSV files if they don't exist."""
+        """Cria diretórios e arquivos CSV necessários se não existirem."""
         os.makedirs(PLANILHAS_DIR, exist_ok=True)
         os.makedirs(BACKUP_DIR, exist_ok=True)
         os.makedirs(COLABORADORES_DIR, exist_ok=True)
@@ -723,42 +723,42 @@ class AlmoxarifadoApp:
                     print(f"Arquivo criado: {arquivo}")
                 except Exception as e:
                     messagebox.showerror("Erro ao Criar Arquivo", f"Não foi possível criar {arquivo}: {e}")
-                    # Consider exiting if essential files can't be created
+                    # Considere sair se arquivos essenciais não puderem ser criados
 
     def _safe_read_csv(self, file_path):
-        """Safely reads a CSV file, returning an empty DataFrame on error."""
+        """Lê um arquivo CSV com segurança, retornando um DataFrame vazio em caso de erro."""
         try:
-            # Explicitly define dtypes to avoid confusion, esp for codes/CAs
-            dtype_map = {'CODIGO': str, 'CA': str} # Add others if needed
+            # Define explicitamente os dtypes para evitar confusão, esp para códigos/CAs
+            dtype_map = {'CODIGO': str, 'CA': str} # Adicione outros se necessário
             return pd.read_csv(file_path, encoding="utf-8", dtype=dtype_map)
         except FileNotFoundError:
             self._update_status(f"Aviso: Arquivo não encontrado: {file_path}. Verifique as pastas.", error=True)
-            return pd.DataFrame() # Return empty df
+            return pd.DataFrame() # Retorna df vazio
         except Exception as e:
             self._update_status(f"Erro ao ler {file_path}: {e}", error=True)
             messagebox.showerror("Erro de Leitura", f"Não foi possível ler o arquivo {os.path.basename(file_path)}.\nVerifique se ele não está corrompido ou aberto em outro programa.\n\nDetalhes: {e}")
             return pd.DataFrame()
 
     def _safe_write_csv(self, df, file_path, create_backup=True):
-        """Safely writes a DataFrame to CSV, optionally creating a backup."""
+        """Escreve um DataFrame em CSV com segurança, opcionalmente criando um backup."""
         backup_path = None
         try:
-            # Backup before writing
+            # Backup antes de escrever
             if create_backup and os.path.exists(file_path):
                 timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
                 backup_path = file_path.replace(".csv", f"_backup_{timestamp}.csv")
-                shutil.copy2(file_path, backup_path) # copy2 preserves metadata
+                shutil.copy2(file_path, backup_path) # copy2 preserva metadados
 
             df.to_csv(file_path, index=False, encoding="utf-8")
-            return True # Indicate success
+            return True # Indica sucesso
         except Exception as e:
             self._update_status(f"Erro Crítico ao salvar {os.path.basename(file_path)}: {e}", error=True)
             messagebox.showerror("Erro ao Salvar", f"Não foi possível salvar as alterações em {os.path.basename(file_path)}.\n\nDetalhes: {e}\n\n{'Um backup pode ter sido criado: ' + os.path.basename(backup_path) if backup_path else 'Não foi possível criar backup.'}")
-            # Consider recovery options or warning the user data might be inconsistent
-            return False # Indicate failure
+            # Considere opções de recuperação ou avisar o usuário que os dados podem estar inconsistentes
+            return False # Indica falha
 
     def _load_and_display_table(self, table_name):
-        """Loads data from CSV and updates the main pandastable."""
+        """Carrega dados do CSV e atualiza a pandastable principal."""
         file_path = ARQUIVOS.get(table_name)
         if not file_path:
             messagebox.showerror("Erro Interno", f"Nome de tabela inválido: {table_name}")
@@ -767,53 +767,53 @@ class AlmoxarifadoApp:
         self._update_status(f"Carregando tabela '{table_name.capitalize()}'...")
         df = self._safe_read_csv(file_path)
 
-        # Perform sanity checks/corrections if needed *carefully*
-        # Example: Ensure numeric columns are numeric, fill NaNs reasonably
+        # Realiza verificações/correções de sanidade se necessário *com cuidado*
+        # Exemplo: Garante que colunas numéricas sejam numéricas, preenche NaNs razoavelmente
         if table_name == "estoque":
              numeric_cols = ["VALOR UN", "VALOR TOTAL", "QUANTIDADE"]
              df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce').fillna(0)
-             # Recalculate VALOR TOTAL for consistency? Risky if data is bad.
+             # Recalcular VALOR TOTAL para consistência? Arriscado se os dados estiverem ruins.
              # df["VALOR TOTAL"] = df["VALOR UN"] * df["QUANTIDADE"]
-             # Only save back immediately if calculation is non-destructive
-             # self._safe_write_csv(df, file_path, create_backup=False) # Avoid backup loops
+             # Só salva de volta imediatamente se o cálculo não for destrutivo
+             # self._safe_write_csv(df, file_path, create_backup=False) # Evita loops de backup
 
-        # Ensure string columns are strings
+        # Garante que colunas de string sejam strings
         string_like_cols = ["DESCRICAO", "LOCALIZACAO", "SOLICITANTE", "ID", "CODIGO", "CA"]
         for col in string_like_cols:
              if col in df.columns:
-                 df[col] = df[col].astype(str).fillna('') # Fill NaN with empty string
+                 df[col] = df[col].astype(str).fillna('') # Preenche NaN com string vazia
 
 
-        self.current_table_df = df # Store the loaded dataframe
+        self.current_table_df = df # Armazena o dataframe carregado
         self.active_table_name = table_name
 
-        # Update pandastable
+        # Atualiza pandastable
         try:
             self.pandas_table.updateModel(TableModel(self.current_table_df))
-            # Adjust column widths if needed - might need more specific logic
-            # self.pandas_table.autoResizeColumns() # Use with caution on large tables
+            # Ajusta larguras das colunas se necessário - pode precisar de lógica mais específica
+            # self.pandas_table.autoResizeColumns() # Use com cautela em tabelas grandes
             self.pandas_table.redraw()
             self._update_status(f"Tabela '{table_name.capitalize()}' carregada ({len(self.current_table_df)} registros).")
             self._atualizar_cores_botoes_view()
-            self._on_table_select() # Update button states
+            self._on_table_select() # Atualiza estados dos botões
         except Exception as e:
             self._update_status(f"Erro ao exibir tabela '{table_name.capitalize()}': {e}", error=True)
 
     def _atualizar_tabela_atual(self):
-        """Reloads data for the currently active table view."""
+        """Recarrega os dados para a visualização da tabela ativa atual."""
         if self.active_table_name:
-             # Re-apply search filter if active
+             # Reaplica o filtro de pesquisa se ativo
             query = self.pesquisar_entry.get().strip()
             self._load_and_display_table(self.active_table_name)
             if query:
                  self.pesquisar_entry.delete(0, tk.END)
                  self.pesquisar_entry.insert(0, query)
-                 self._pesquisar_tabela() # Reapply search
+                 self._pesquisar_tabela() # Reaplica a pesquisa
 
     def _trocar_tabela_view(self, nome_tabela):
-        """Changes the table being viewed in the 'Estoque & Tabelas' tab."""
+        """Muda a tabela sendo visualizada na aba 'Estoque & Tabelas'."""
         if nome_tabela in ARQUIVOS:
-             # Clear search before switching
+             # Limpa a pesquisa antes de trocar
              self.pesquisar_entry.delete(0, tk.END)
              self._load_and_display_table(nome_tabela)
         else:
@@ -821,9 +821,9 @@ class AlmoxarifadoApp:
 
 
     def _carregar_epis(self):
-         """Loads EPI data into the EPIs tab table."""
+         """Carrega dados de EPIs na tabela da aba EPIs."""
          df_epis = self._safe_read_csv(ARQUIVOS["epis"])
-         # Basic type handling for EPIs
+         # Tratamento básico de tipos para EPIs
          df_epis["CA"] = df_epis["CA"].astype(str).fillna("")
          df_epis["DESCRICAO"] = df_epis["DESCRICAO"].astype(str).fillna("")
          df_epis["QUANTIDADE"] = pd.to_numeric(df_epis["QUANTIDADE"], errors='coerce').fillna(0)
@@ -832,44 +832,44 @@ class AlmoxarifadoApp:
              self.epis_table.updateModel(TableModel(df_epis))
              self.epis_table.redraw()
              self._update_status(f"Lista de EPIs atualizada ({len(df_epis)} itens).")
-             self._on_epi_table_select() # Update button state
+             self._on_epi_table_select() # Atualiza estado do botão
          except Exception as e:
               self._update_status(f"Erro ao exibir EPIs: {e}", error=True)
 
 
     def _atualizar_tabela_epis(self):
-         """Convenience method to reload EPI data."""
+         """Método de conveniência para recarregar dados de EPIs."""
          self._carregar_epis()
 
     def _buscar_produto(self, codigo):
-        """Busca um produto no estoque pelo código. Returns a Series or None."""
+        """Busca um produto no estoque pelo código. Retorna uma Series ou None."""
         df_estoque = self._safe_read_csv(ARQUIVOS["estoque"])
-        # Ensure Codigo column is string for comparison
+        # Garante que a coluna Codigo seja string para comparação
         df_estoque['CODIGO'] = df_estoque['CODIGO'].astype(str)
         produto = df_estoque[df_estoque['CODIGO'] == str(codigo)]
         if not produto.empty:
-            return produto.iloc[0] # Return the first match as a Series
+            return produto.iloc[0] # Retorna a primeira correspondência como uma Series
         return None
 
     def _atualizar_estoque_produto(self, codigo, nova_quantidade):
         """Atualiza a quantidade e valor total de um produto no estoque."""
         df_estoque = self._safe_read_csv(ARQUIVOS["estoque"])
         codigo_str = str(codigo)
-        df_estoque['CODIGO'] = df_estoque['CODIGO'].astype(str) # Ensure consistency
+        df_estoque['CODIGO'] = df_estoque['CODIGO'].astype(str) # Garante consistência
 
-        # Find the index
+        # Encontra o índice
         idx = df_estoque.index[df_estoque['CODIGO'] == codigo_str].tolist()
 
         if not idx:
              self._update_status(f"Erro interno: Produto {codigo_str} não encontrado para atualizar.", error=True)
-             return False # Product not found
+             return False # Produto não encontrado
 
         try:
-            # Update quantity (handle potential type issues)
-            idx = idx[0] # Use first index if multiple somehow exist
+            # Atualiza quantidade (lida com possíveis problemas de tipo)
+            idx = idx[0] # Usa o primeiro índice se múltiplos existirem de alguma forma
             current_valor_un = pd.to_numeric(df_estoque.loc[idx, "VALOR UN"], errors='coerce')
             if pd.isna(current_valor_un):
-                current_valor_un = 0 # Default if conversion failed
+                current_valor_un = 0 # Padrão se a conversão falhar
             nova_quantidade = pd.to_numeric(nova_quantidade, errors='coerce')
             if pd.isna(nova_quantidade) or nova_quantidade < 0:
                  raise ValueError("Nova quantidade inválida.")
@@ -877,16 +877,16 @@ class AlmoxarifadoApp:
 
             df_estoque.loc[idx, "QUANTIDADE"] = nova_quantidade
             df_estoque.loc[idx, "VALOR TOTAL"] = current_valor_un * nova_quantidade
-            df_estoque.loc[idx, "DATA"] = datetime.now().strftime("%H:%M %d/%m/%Y") # Update timestamp
+            df_estoque.loc[idx, "DATA"] = datetime.now().strftime("%H:%M %d/%m/%Y") # Atualiza timestamp
 
-            # Save the changes
+            # Salva as alterações
             if self._safe_write_csv(df_estoque, ARQUIVOS["estoque"]):
-                 # If the estoque table is currently displayed, refresh it
+                 # Se a tabela de estoque estiver sendo exibida, atualiza-a
                  if self.active_table_name == "estoque":
                       self._atualizar_tabela_atual()
                  return True
             else:
-                 return False # Save failed
+                 return False # Salvar falhou
 
         except (ValueError, KeyError, IndexError) as e:
              self._update_status(f"Erro ao atualizar estoque para {codigo_str}: {e}", error=True)
@@ -897,19 +897,19 @@ class AlmoxarifadoApp:
         """Obtém o próximo código disponível para um novo produto."""
         df_estoque = self._safe_read_csv(ARQUIVOS["estoque"])
         if df_estoque.empty or 'CODIGO' not in df_estoque.columns:
-            return "1"  # Start from 1 if empty or no codigo column
+            return "1"  # Começa de 1 se vazio ou sem coluna codigo
 
-        # Convert to numeric safely, find max, handle non-numeric codes
+        # Converte para numérico com segurança, encontra o máximo, lida com códigos não numéricos
         codes_numeric = pd.to_numeric(df_estoque['CODIGO'], errors='coerce')
         max_code = codes_numeric.max()
 
         if pd.isna(max_code):
-            # If all codes were non-numeric or conversion failed, start fresh
+            # Se todos os códigos não forem numéricos ou a conversão falhar, começa do zero
             return "1"
         else:
             return str(int(max_code) + 1)
 
-    # --- Core Logic Methods (Cadastro, Movimentação, EPIs) ---
+    # --- Métodos de Lógica Principal (Cadastro, Movimentação, EPIs) ---
 
     def _cadastrar_estoque(self):
         """Cadastra um novo produto no estoque."""
@@ -918,7 +918,7 @@ class AlmoxarifadoApp:
         val_un_str = self.cadastro_entries["VALOR UN"].get().strip().replace(",",".")
         loc = self.cadastro_entries["LOCALIZACAO"].get().strip().upper()
 
-        # Validation
+        # Validação
         if not desc:
              messagebox.showerror("Erro de Validação", "Descrição não pode ser vazia.")
              self.cadastro_entries["DESCRICAO"].focus_set()
@@ -957,19 +957,19 @@ class AlmoxarifadoApp:
             }
 
             try:
-                 # Use 'a' mode for appending with header=False if file exists
+                 # Usa modo 'a' para anexar com header=False se o arquivo existir
                  header = not os.path.exists(ARQUIVOS["estoque"]) or os.path.getsize(ARQUIVOS["estoque"]) == 0
                  pd.DataFrame([novo_produto]).to_csv(ARQUIVOS["estoque"], mode='a', header=header, index=False, encoding='utf-8')
 
                  messagebox.showinfo("Sucesso", f"Produto '{desc}' (Cód: {codigo}) cadastrado com sucesso!")
                  self._update_status(f"Produto {codigo} - {desc} cadastrado.")
 
-                 # Clear fields
+                 # Limpa campos
                  for entry in self.cadastro_entries.values():
                      entry.delete(0, tk.END)
-                 self.cadastro_entries["DESCRICAO"].focus_set() # Focus first field
+                 self.cadastro_entries["DESCRICAO"].focus_set() # Foca o primeiro campo
 
-                 # Refresh view if showing estoque
+                 # Atualiza a visualização se estiver mostrando estoque
                  if self.active_table_name == "estoque":
                       self._atualizar_tabela_atual()
 
@@ -983,7 +983,7 @@ class AlmoxarifadoApp:
         codigo = self.entrada_codigo_entry.get().strip()
         qtd_str = self.entrada_qtd_entry.get().strip().replace(",",".")
 
-        # Validation
+        # Validação
         if not codigo:
              messagebox.showerror("Erro de Validação", "Código do produto não pode ser vazio.")
              self.entrada_codigo_entry.focus_set()
@@ -1033,16 +1033,16 @@ class AlmoxarifadoApp:
                  if self._atualizar_estoque_produto(codigo, nova_quantidade_estoque):
                      messagebox.showinfo("Sucesso", f"Entrada registrada para '{desc}' (Cód: {codigo}).\nEstoque atualizado: {nova_quantidade_estoque}")
                      self._update_status(f"Entrada registrada para {codigo}. Novo estoque: {nova_quantidade_estoque}")
-                     # Clear fields
+                     # Limpa campos
                      self.entrada_codigo_entry.delete(0, tk.END)
                      self.entrada_qtd_entry.delete(0, tk.END)
                      self.entrada_codigo_entry.focus_set()
-                     # Refresh view if showing entrada
+                     # Atualiza a visualização se estiver mostrando entrada
                      if self.active_table_name == "entrada":
                          self._atualizar_tabela_atual()
                  else:
-                      # Update failed, log/message handled in _atualizar_estoque_produto
-                      # Maybe rollback the entry record? Complex without transactions.
+                      # Atualização falhou, log/mensagem tratada em _atualizar_estoque_produto
+                      # Talvez reverter o registro de entrada? Complexo sem transações.
                      messagebox.showwarning("Atenção", "Entrada registrada, mas houve erro ao atualizar o estoque. Verifique os dados.")
 
             except Exception as e:
@@ -1056,7 +1056,7 @@ class AlmoxarifadoApp:
         solicitante = self.saida_solicitante_entry.get().strip().upper()
         qtd_str = self.saida_qtd_entry.get().strip().replace(",",".")
 
-        # Validation
+        # Validação
         if not codigo:
              messagebox.showerror("Erro de Validação", "Código do produto não pode ser vazio.")
              self.saida_codigo_entry.focus_set()
@@ -1112,12 +1112,12 @@ class AlmoxarifadoApp:
                  if self._atualizar_estoque_produto(codigo, nova_quantidade_estoque):
                      messagebox.showinfo("Sucesso", f"Saída registrada para '{desc}' (Solicitante: {solicitante}).\nEstoque restante: {nova_quantidade_estoque}")
                      self._update_status(f"Saída registrada para {codigo}. Estoque restante: {nova_quantidade_estoque}")
-                     # Clear fields
+                     # Limpa campos
                      self.saida_codigo_entry.delete(0, tk.END)
                      self.saida_solicitante_entry.delete(0, tk.END)
                      self.saida_qtd_entry.delete(0, tk.END)
                      self.saida_codigo_entry.focus_set()
-                     # Refresh view if showing saida
+                     # Atualiza a visualização se estiver mostrando saida
                      if self.active_table_name == "saida":
                          self._atualizar_tabela_atual()
                  else:
@@ -1150,7 +1150,7 @@ class AlmoxarifadoApp:
             return
 
         df_epis = self._safe_read_csv(ARQUIVOS["epis"])
-        # Ensure types and clean strings before searching
+        # Garante tipos e limpa strings antes de buscar
         df_epis["CA"] = df_epis["CA"].astype(str).fillna("").str.strip().str.upper()
         df_epis["DESCRICAO"] = df_epis["DESCRICAO"].astype(str).fillna("").str.strip().str.upper()
         df_epis["QUANTIDADE"] = pd.to_numeric(df_epis["QUANTIDADE"], errors='coerce').fillna(0)
@@ -1158,26 +1158,26 @@ class AlmoxarifadoApp:
         found_epi_index = None
         epi_existente_data = None
 
-        # Prioritize matching by CA if provided
+        # Prioriza correspondência por CA se fornecido
         if ca:
              match = df_epis[df_epis["CA"] == ca]
              if not match.empty:
                  found_epi_index = match.index[0]
                  epi_existente_data = match.iloc[0]
-        # If no CA match or CA wasn't provided, try matching by Description
+        # Se não houver correspondência de CA ou CA não foi fornecido, tenta por Descrição
         if found_epi_index is None and descricao:
             match = df_epis[df_epis["DESCRICAO"] == descricao]
             if not match.empty:
-                # Check if this description is tied to a *different* CA than provided (if CA was provided)
+                # Verifica se esta descrição está ligada a um CA *diferente* do fornecido (se CA foi fornecido)
                 if ca and match.iloc[0]["CA"] and match.iloc[0]["CA"] != ca:
                     messagebox.showwarning("Conflito de Dados", f"A descrição '{descricao}' já existe mas está associada ao CA '{match.iloc[0]['CA']}'.\nNão é possível adicionar com o CA '{ca}'. Verifique os dados.", parent=self.epis_tab)
                     return
                 found_epi_index = match.index[0]
                 epi_existente_data = match.iloc[0]
 
-        # --- Handle Found vs. New EPI ---
+        # --- Lida com EPI Encontrado vs. Novo ---
         if epi_existente_data is not None:
-             # EPI Exists - Confirm adding quantity
+             # EPI Existe - Confirma adição de quantidade
              qtd_atual = epi_existente_data["QUANTIDADE"]
              confirm_msg = (f"EPI já existe:\n"
                             f" CA: {epi_existente_data['CA'] if epi_existente_data['CA'] else '-'}\n"
@@ -1187,28 +1187,28 @@ class AlmoxarifadoApp:
              if messagebox.askyesno("Confirmar Adição", confirm_msg, parent=self.epis_tab):
                  nova_quantidade = qtd_atual + quantidade_add
                  df_epis.loc[found_epi_index, "QUANTIDADE"] = nova_quantidade
-                 # Also update description/ca if they were provided and different but deemed okay to update
+                 # Também atualiza descrição/ca se foram fornecidos e diferentes, mas considerados ok para atualizar
                  if ca and df_epis.loc[found_epi_index, "CA"] != ca:
                       df_epis.loc[found_epi_index, "CA"] = ca
                  if descricao and df_epis.loc[found_epi_index, "DESCRICAO"] != descricao:
                       df_epis.loc[found_epi_index, "DESCRICAO"] = descricao
 
-                 # Save
+                 # Salva
                  if self._safe_write_csv(df_epis, ARQUIVOS["epis"]):
                       self._update_status(f"Quantidade EPI {epi_existente_data['DESCRICAO']} atualizada para {nova_quantidade}.")
                       messagebox.showinfo("Sucesso", f"Quantidade atualizada!\nNova Quantidade: {nova_quantidade}", parent=self.epis_tab)
                       self._atualizar_tabela_epis()
-                      # Clear Fields
+                      # Limpa Campos
                       self.epi_ca_entry.delete(0, tk.END)
                       self.epi_desc_entry.delete(0, tk.END)
                       self.epi_qtd_entry.delete(0, tk.END)
                       self.epi_ca_entry.focus_set()
-                 # else: error handled in _safe_write_csv
+                 # else: erro tratado em _safe_write_csv
              else:
                   messagebox.showinfo("Operação Cancelada", "A quantidade não foi alterada.", parent=self.epis_tab)
 
         else:
-             # New EPI - Confirm registration
+             # Novo EPI - Confirma registro
              confirm_msg = (f"Registrar novo EPI?\n\n"
                            f" CA: {ca if ca else '-'}\n"
                            f" Descrição: {descricao}\n"
@@ -1216,13 +1216,13 @@ class AlmoxarifadoApp:
              if messagebox.askyesno("Confirmar Registro", confirm_msg, parent=self.epis_tab):
                 novo_epi = {"CA": ca, "DESCRICAO": descricao, "QUANTIDADE": quantidade_add}
                 try:
-                    # Append new row
+                    # Anexa nova linha
                     header = not os.path.exists(ARQUIVOS["epis"]) or os.path.getsize(ARQUIVOS["epis"]) == 0
                     pd.DataFrame([novo_epi]).to_csv(ARQUIVOS["epis"], mode='a', header=header, index=False, encoding='utf-8')
                     self._update_status(f"Novo EPI {descricao} registrado com {quantidade_add} unidades.")
                     messagebox.showinfo("Sucesso", f"EPI '{descricao}' registrado com sucesso!", parent=self.epis_tab)
                     self._atualizar_tabela_epis()
-                    # Clear Fields
+                    # Limpa Campos
                     self.epi_ca_entry.delete(0, tk.END)
                     self.epi_desc_entry.delete(0, tk.END)
                     self.epi_qtd_entry.delete(0, tk.END)
@@ -1253,12 +1253,12 @@ class AlmoxarifadoApp:
              return
 
         df_epis = self._safe_read_csv(ARQUIVOS["epis"])
-        # Clean data for matching
+        # Limpa dados para correspondência
         df_epis["CA"] = df_epis["CA"].astype(str).fillna("").str.strip().str.upper()
         df_epis["DESCRICAO"] = df_epis["DESCRICAO"].astype(str).fillna("").str.strip().str.upper()
         df_epis["QUANTIDADE"] = pd.to_numeric(df_epis["QUANTIDADE"], errors='coerce').fillna(0)
 
-        # Find EPI by CA or Description
+        # Encontra EPI por CA ou Descrição
         epi_match = df_epis[(df_epis["CA"] == identificador) | (df_epis["DESCRICAO"] == identificador)]
 
         if epi_match.empty:
@@ -1267,7 +1267,7 @@ class AlmoxarifadoApp:
 
         epi_data = epi_match.iloc[0]
         epi_index = epi_match.index[0]
-        ca_epi = epi_data["CA"] # Use the actual CA from the record
+        ca_epi = epi_data["CA"] # Usa o CA real do registro
         desc_epi = epi_data["DESCRICAO"]
         qtd_disponivel = epi_data["QUANTIDADE"]
 
@@ -1275,12 +1275,12 @@ class AlmoxarifadoApp:
              messagebox.showerror("Erro", f"Quantidade insuficiente para '{desc_epi}' (CA: {ca_epi}).\nDisponível: {qtd_disponivel}", parent=self.epis_tab)
              return
 
-        # Check/Create Colaborador Folder
+        # Verifica/Cria Pasta do Colaborador
         pasta_colaborador = os.path.join(COLABORADORES_DIR, colaborador)
-        os.makedirs(pasta_colaborador, exist_ok=True) # Create if not exists
+        os.makedirs(pasta_colaborador, exist_ok=True) # Cria se não existir
 
         nova_qtd_epi = qtd_disponivel - quantidade_retirada
-        data_hora = datetime.now().strftime("%H:%M %d/%m/%Y") # Consistent format
+        data_hora = datetime.now().strftime("%H:%M %d/%m/%Y") # Formato consistente
 
         confirm_msg = (f"Confirmar Retirada?\n\n"
                        f"Colaborador: {colaborador}\n"
@@ -1289,13 +1289,13 @@ class AlmoxarifadoApp:
                        f"Qtd. Restante: {nova_qtd_epi}")
 
         if messagebox.askyesno("Confirmar Retirada", confirm_msg, parent=self.epis_tab):
-             # 1. Update EPI quantity
+             # 1. Atualiza quantidade de EPI
              df_epis.loc[epi_index, "QUANTIDADE"] = nova_qtd_epi
              if not self._safe_write_csv(df_epis, ARQUIVOS["epis"]):
                   messagebox.showerror("Erro Crítico", "Falha ao atualizar a quantidade de EPIs. A retirada NÃO foi registrada.", parent=self.epis_tab)
-                  return # Stop if EPI update fails
+                  return # Para se a atualização do EPI falhar
 
-             # 2. Record withdrawal in collaborator's file
+             # 2. Registra retirada no arquivo do colaborador
              nome_arquivo_colab = f"{colaborador}_{datetime.now().strftime('%Y_%m')}.csv"
              caminho_arquivo_colab = os.path.join(pasta_colaborador, nome_arquivo_colab)
              colab_file_data = {
@@ -1306,11 +1306,11 @@ class AlmoxarifadoApp:
                  header_colab = not os.path.exists(caminho_arquivo_colab) or os.path.getsize(caminho_arquivo_colab) == 0
                  pd.DataFrame([colab_file_data]).to_csv(caminho_arquivo_colab, mode='a', header=header_colab, index=False, encoding='utf-8')
 
-                 # Success
+                 # Sucesso
                  messagebox.showinfo("Sucesso", f"Retirada de {quantidade_retirada} '{desc_epi}' registrada para {colaborador}.", parent=self.epis_tab)
                  self._update_status(f"Retirada EPI {desc_epi} para {colaborador}.")
                  self._atualizar_tabela_epis()
-                 # Clear fields
+                 # Limpa campos
                  self.retirar_epi_id_entry.delete(0, tk.END)
                  self.retirar_epi_qtd_entry.delete(0, tk.END)
                  self.retirar_epi_colab_entry.delete(0, tk.END)
@@ -1318,129 +1318,129 @@ class AlmoxarifadoApp:
 
              except Exception as e:
                   self._update_status(f"Erro ao salvar retirada no arquivo do colaborador {colaborador}: {e}", error=True)
-                  # Attempt to rollback EPI quantity? Risky without transactions.
-                  # df_epis.loc[epi_index, "QUANTIDADE"] = qtd_disponivel # Rollback
-                  # self._safe_write_csv(df_epis, ARQUIVOS["epis"]) # Try saving back
+                  # Tentar reverter a quantidade de EPI? Arriscado sem transações.
+                  # df_epis.loc[epi_index, "QUANTIDADE"] = qtd_disponivel # Reverte
+                  # self._safe_write_csv(df_epis, ARQUIVOS["epis"]) # Tenta salvar de volta
                   messagebox.showerror("Erro ao Salvar", f"Não foi possível salvar a retirada no arquivo de {colaborador}, mas a quantidade de EPIs FOI alterada.\nVerifique manualmente.\n\nDetalhe: {e}", parent=self.epis_tab)
 
 
-    # --- Lookup Dialog Launchers ---
+    # --- Lançadores de Diálogo de Busca ---
 
     def _show_product_lookup(self, target_field_prefix):
-         """Shows lookup dialog for products and fills entry."""
+         """Mostra diálogo de busca para produtos e preenche a entrada."""
          df_estoque = self._safe_read_csv(ARQUIVOS["estoque"])
          if df_estoque.empty:
              messagebox.showinfo("Estoque Vazio", "Não há produtos cadastrados no estoque para buscar.", parent=self.movimentacao_tab)
              return
 
          dialog = LookupDialog(self.root, "Buscar Produto no Estoque", df_estoque, ["CODIGO", "DESCRICAO"], "CODIGO")
-         result_code = dialog.result # This blocks until dialog is closed
+         result_code = dialog.result # Isso bloqueia até o diálogo ser fechado
 
          if result_code:
               if target_field_prefix == "entrada":
                    self.entrada_codigo_entry.delete(0, tk.END)
                    self.entrada_codigo_entry.insert(0, result_code)
-                   self.entrada_qtd_entry.focus_set() # Focus next field
+                   self.entrada_qtd_entry.focus_set() # Foca o próximo campo
               elif target_field_prefix == "saida":
                    self.saida_codigo_entry.delete(0, tk.END)
                    self.saida_codigo_entry.insert(0, result_code)
-                   self.saida_solicitante_entry.focus_set() # Focus next field
+                   self.saida_solicitante_entry.focus_set() # Foca o próximo campo
 
     def _show_epi_lookup(self):
-         """Shows lookup dialog for EPIs and fills entry."""
+         """Mostra diálogo de busca para EPIs e preenche a entrada."""
          df_epis = self._safe_read_csv(ARQUIVOS["epis"])
          if df_epis.empty:
              messagebox.showinfo("EPIs Vazios", "Não há EPIs cadastrados para buscar.", parent=self.epis_tab)
              return
-         # Allow searching by CA or Description, return the identifier used
-         dialog = LookupDialog(self.root, "Buscar EPI", df_epis, ["CA", "DESCRICAO"], "CA") # Preference return CA? Or Description? Or a combined key? Let's return CA if exists else description? Or maybe always description? For now, return CA as primary key. Modify display logic in LookupDialog if needed.
+         # Permite buscar por CA ou Descrição, retorna o identificador usado
+         dialog = LookupDialog(self.root, "Buscar EPI", df_epis, ["CA", "DESCRICAO"], "CA") # Preferência retornar CA? Ou Descrição? Ou uma chave combinada? Vamos retornar CA se existir, senão descrição? Ou talvez sempre descrição? Por agora, retorna CA como chave primária. Modifique a lógica de exibição em LookupDialog se necessário.
          result_id = dialog.result
 
          if result_id:
-              # User selected an item. Find it again to ensure we use its standard representation
+              # Usuário selecionou um item. Encontra novamente para garantir que usamos sua representação padrão
               found_epi = df_epis[df_epis["CA"] == result_id]
-              display_id = result_id # Default to CA if found by CA
+              display_id = result_id # Padrão para CA se encontrado por CA
 
-              if found_epi.empty: # Maybe it was selected by Description
-                  found_epi = df_epis[df_epis["DESCRICAO"] == result_id] # Should maybe return desc from dialog if chosen by desc?
+              if found_epi.empty: # Talvez foi selecionado por Descrição
+                  found_epi = df_epis[df_epis["DESCRICAO"] == result_id] # Deveria talvez retornar desc do diálogo se escolhido por desc?
                   if not found_epi.empty:
-                      # Decide what to display: CA or Desc? Let's favor Desc for clarity if CA is blank.
+                      # Decide o que exibir: CA ou Desc? Vamos favorecer Desc para clareza se CA estiver em branco.
                       display_id = found_epi.iloc[0]['CA'] if found_epi.iloc[0]['CA'] else found_epi.iloc[0]['DESCRICAO']
 
 
               self.retirar_epi_id_entry.delete(0, tk.END)
-              self.retirar_epi_id_entry.insert(0, display_id) # Use consistent ID
+              self.retirar_epi_id_entry.insert(0, display_id) # Usa ID consistente
               self.retirar_epi_qtd_entry.focus_set()
 
 
-    # --- Edit / Delete Functionality ---
+    # --- Funcionalidade Editar / Excluir ---
 
     def _get_selected_data(self, table):
         """
-        Gets data for the single selected row in the specified pandastable.
-        Uses the visual row number to get the corresponding index label from the current model's DataFrame.
-        Returns a pandas Series or None if selection is invalid or data cannot be retrieved.
+        Obtém dados para a única linha selecionada na pandastable especificada.
+        Usa o número da linha visual para obter o rótulo de índice correspondente do DataFrame do modelo atual.
+        Retorna uma pandas Series ou None se a seleção for inválida ou os dados não puderem ser recuperados.
         """
         model = table.model
-        # Ensure the model and its dataframe attribute exist
+        # Garante que o modelo e seu atributo dataframe existam
         if not hasattr(model, 'df') or model.df is None:
-            # This case might occur if the table hasn't been populated yet
-            # or if something went wrong during model update.
-            # print("Debug: Model or model.df not found in _get_selected_data")
+            # Este caso pode ocorrer se a tabela ainda não foi populada
+            # ou se algo deu errado durante a atualização do modelo.
+            # print("Debug: Modelo ou model.df não encontrado em _get_selected_data")
             return None
 
-        # getSelectedRow() returns the 0-based VISUAL row number in the table
+        # getSelectedRow() retorna o número da linha VISUAL baseado em 0 na tabela
         row_num = table.getSelectedRow()
 
         if row_num < 0:
-            # No row is visually selected, or an error occurred during selection reporting
-            # print(f"Debug: No row selected (row_num={row_num})")
+            # Nenhuma linha está visualmente selecionada, ou ocorreu um erro ao relatar a seleção
+            # print(f"Debug: Nenhuma linha selecionada (row_num={row_num})")
             return None
 
-        # Get the DataFrame currently being displayed by the table model
+        # Obtém o DataFrame atualmente sendo exibido pelo modelo da tabela
         current_df = model.df
 
-        # *** CRITICAL CHECK ***
-        # Verify that the visually selected row number is a valid positional index
-        # for the *current* DataFrame being displayed.
+        # *** VERIFICAÇÃO CRÍTICA ***
+        # Verifica se o número da linha visualmente selecionada é um índice posicional válido
+        # para o DataFrame *atual* sendo exibido.
         if row_num >= len(current_df):
-            # This condition means the visual selection is pointing outside the bounds
-            # of the actual data currently in the table model. This can happen
-            # during rapid updates, filtering conflicts, or state inconsistencies.
-            print(f"Debug: Error - selected visual row {row_num} is out of bounds for current DataFrame length {len(current_df)}")
-            # Optionally show a user message:
+            # Esta condição significa que a seleção visual está apontando para fora dos limites
+            # dos dados reais atualmente no modelo da tabela. Isso pode acontecer
+            # durante atualizações rápidas, conflitos de filtragem ou inconsistências de estado.
+            print(f"Debug: Erro - linha visual selecionada {row_num} está fora dos limites para o comprimento atual do DataFrame {len(current_df)}")
+            # Opcionalmente, mostre uma mensagem ao usuário:
             # messagebox.showwarning("Seleção Inválida", f"A linha selecionada ({row_num}) parece inválida. A tabela pode ter sido atualizada. Tente selecionar novamente.", parent=self.root)
-            # table.clearSelection() # Optionally clear the invalid selection
-            return None # Indicate that valid data couldn't be retrieved
+            # table.clearSelection() # Opcionalmente, limpa a seleção inválida
+            return None # Indica que dados válidos não puderam ser recuperados
 
         try:
-            # If the visual row number is valid for the current DataFrame's length,
-            # access the DataFrame's index using that positional number.
-            # This gives us the actual index LABEL (could be integer, string, etc.)
+            # Se o número da linha visual for válido para o comprimento do DataFrame atual,
+            # acessa o índice do DataFrame usando esse número posicional.
+            # Isso nos dá o RÓTULO de índice real (pode ser inteiro, string, etc.)
             index_label = current_df.index[row_num]
 
-            # Now, retrieve the row data using the reliable index LABEL via .loc
+            # Agora, recupera os dados da linha usando o RÓTULO de índice confiável via .loc
             selected_series = current_df.loc[index_label]
 
-            # print(f"Debug: Successfully retrieved data for visual row {row_num}, index label {index_label}")
-            return selected_series # Return the pandas Series
+            # print(f"Debug: Dados recuperados com sucesso para a linha visual {row_num}, rótulo de índice {index_label}")
+            return selected_series # Retorna a pandas Series
 
         except IndexError:
-            # This IndexError might occur if, despite the length check,
-            # the index itself is somehow invalid or inconsistent at the time of access.
-            # The length check (`row_num >= len(current_df)`) should prevent most of these.
-            print(f"Debug: IndexError trying to access index label at position {row_num} in current DataFrame with length {len(current_df)}.")
+            # Este IndexError pode ocorrer se, apesar da verificação de comprimento,
+            # o próprio índice estiver de alguma forma inválido ou inconsistente no momento do acesso.
+            # A verificação de comprimento (`row_num >= len(current_df)`) deve prevenir a maioria destes.
+            print(f"Debug: IndexError ao tentar acessar o rótulo de índice na posição {row_num} no DataFrame atual com comprimento {len(current_df)}.")
             # messagebox.showerror("Erro de Seleção", f"Não foi possível encontrar o índice para a linha selecionada ({row_num}). A tabela pode ter sido atualizada.", parent=self.root)
             return None
         except Exception as e:
-            # Catch any other unexpected errors during data retrieval
-            print(f"Debug: Unexpected error in _get_selected_data for visual row {row_num}: {e}")
+            # Captura quaisquer outros erros inesperados durante a recuperação de dados
+            print(f"Debug: Erro inesperado em _get_selected_data para linha visual {row_num}: {e}")
             messagebox.showerror("Erro Interno", f"Ocorreu um erro ao obter dados da linha selecionada.\n\nDetalhes: {e}", parent=self.root)
             return None
 
 
     def _edit_selected_item(self):
-         """Handles editing the selected item from the main table view."""
+         """Lida com a edição do item selecionado na visualização da tabela principal."""
          if not self.pandas_table or self.active_table_name != "estoque":
               messagebox.showwarning("Ação Inválida", "A edição só está disponível para a tabela de Estoque.", parent=self.estoque_tab)
               return
@@ -1452,18 +1452,18 @@ class AlmoxarifadoApp:
               return
 
          item_dict = selected_item_series.to_dict()
-         # Ensure Codigo is present
+         # Garante que Codigo esteja presente
          if 'CODIGO' not in item_dict:
              messagebox.showerror("Erro Interno", "Não foi possível obter o código do item selecionado.", parent=self.estoque_tab)
              return
-         codigo_to_edit = str(item_dict['CODIGO']) # Get code before opening dialog
+         codigo_to_edit = str(item_dict['CODIGO']) # Obtém o código antes de abrir o diálogo
 
-         # Show Edit Dialog
+         # Mostra Diálogo de Edição
          dialog = EditProductDialog(self.root, f"Editar Produto: {codigo_to_edit}", item_dict)
-         updated_data = dialog.updated_data # This blocks
+         updated_data = dialog.updated_data # Isso bloqueia
 
-         if updated_data: # User clicked Save and validation passed
-              # Save changes back to the main DataFrame (in memory first)
+         if updated_data: # Usuário clicou em Salvar e a validação passou
+              # Salva alterações de volta no DataFrame principal (primeiro na memória)
               df_estoque = self._safe_read_csv(ARQUIVOS["estoque"])
               df_estoque['CODIGO'] = df_estoque['CODIGO'].astype(str)
 
@@ -1474,28 +1474,28 @@ class AlmoxarifadoApp:
               idx = idx[0]
 
               try:
-                    # Update fields from dialog result
+                    # Atualiza campos do resultado do diálogo
                     for key, value in updated_data.items():
                          if key in df_estoque.columns:
-                              # Handle potential type conversion issues before assignment
+                              # Lida com possíveis problemas de conversão de tipo antes da atribuição
                               current_dtype = df_estoque[key].dtype
                               try:
                                    if pd.api.types.is_numeric_dtype(current_dtype):
                                         value = pd.to_numeric(value)
-                                   # Add other type checks if necessary (e.g., dates)
+                                   # Adiciona outras verificações de tipo se necessário (ex: datas)
                               except (ValueError, TypeError):
                                     messagebox.showwarning("Aviso de Tipo", f"Não foi possível converter '{value}' para o tipo da coluna '{key}'. Mantendo valor original.", parent=self.estoque_tab)
-                                    continue # Skip updating this field if conversion fails
+                                    continue # Pula a atualização deste campo se a conversão falhar
                               df_estoque.loc[idx, key] = value
 
-                    # Update timestamp
+                    # Atualiza timestamp
                     df_estoque.loc[idx, "DATA"] = datetime.now().strftime("%H:%M %d/%m/%Y")
 
-                    # Save updated DataFrame to CSV
+                    # Salva DataFrame atualizado para CSV
                     if self._safe_write_csv(df_estoque, ARQUIVOS["estoque"]):
                         messagebox.showinfo("Sucesso", f"Produto {codigo_to_edit} atualizado.", parent=self.estoque_tab)
-                        self._atualizar_tabela_atual() # Refresh view
-                    # else: Error message shown by _safe_write_csv
+                        self._atualizar_tabela_atual() # Atualiza visualização
+                    # else: Mensagem de erro mostrada por _safe_write_csv
 
               except Exception as e:
                   self._update_status(f"Erro ao aplicar edições para {codigo_to_edit}: {e}", error=True)
@@ -1503,7 +1503,7 @@ class AlmoxarifadoApp:
 
 
     def _delete_selected_item(self):
-         """Handles deleting the selected item from the Estoque table."""
+         """Lida com a exclusão do item selecionado da tabela Estoque."""
          if not self.pandas_table or self.active_table_name != "estoque":
               messagebox.showwarning("Ação Inválida", "A exclusão só está disponível para a tabela de Estoque.", parent=self.estoque_tab)
               return
@@ -1523,7 +1523,7 @@ class AlmoxarifadoApp:
                        f"Esta ação não pode ser desfeita.")
 
          if messagebox.askyesno("Confirmar Exclusão", confirm_msg, icon='warning'):
-              # Load the data, find index, drop row, save
+              # Carrega os dados, encontra o índice, remove a linha, salva
               df_estoque = self._safe_read_csv(ARQUIVOS["estoque"])
               df_estoque['CODIGO'] = df_estoque['CODIGO'].astype(str)
               idx = df_estoque.index[df_estoque['CODIGO'] == codigo_to_delete].tolist()
@@ -1532,17 +1532,17 @@ class AlmoxarifadoApp:
                   messagebox.showerror("Erro", f"Item {codigo_to_delete} não encontrado no arquivo para excluir.", parent=self.estoque_tab)
                   return
 
-              df_estoque.drop(idx, inplace=True) # Drop rows by index list
+              df_estoque.drop(idx, inplace=True) # Remove linhas pela lista de índices
 
-              # Save updated DataFrame to CSV
+              # Salva DataFrame atualizado para CSV
               if self._safe_write_csv(df_estoque, ARQUIVOS["estoque"]):
                    messagebox.showinfo("Sucesso", f"Produto {codigo_to_delete} - {desc_to_delete} excluído.", parent=self.estoque_tab)
-                   self._atualizar_tabela_atual() # Refresh view
-              # else: Error message shown by _safe_write_csv
+                   self._atualizar_tabela_atual() # Atualiza visualização
+              # else: Mensagem de erro mostrada por _safe_write_csv
 
 
     def _edit_selected_epi(self):
-        """Handles editing the selected EPI."""
+        """Lida com a edição do EPI selecionado."""
         selected_epi_series = self._get_selected_data(self.epis_table)
 
         if selected_epi_series is None:
@@ -1550,8 +1550,8 @@ class AlmoxarifadoApp:
              return
 
         epi_dict = selected_epi_series.to_dict()
-        # We need a unique identifier to find it later. Use CA if available, otherwise Description.
-        # This assumes CA or Description is unique enough. Ideally, have a hidden unique ID.
+        # Precisamos de um identificador único para encontrá-lo mais tarde. Usa CA se disponível, senão Descrição.
+        # Isso assume que CA ou Descrição é único o suficiente. Idealmente, ter um ID único oculto.
         ca_to_edit = epi_dict.get('CA',"").strip()
         desc_to_edit = epi_dict.get('DESCRICAO',"").strip()
         if not (ca_to_edit or desc_to_edit):
@@ -1563,16 +1563,16 @@ class AlmoxarifadoApp:
 
         if updated_data:
              df_epis = self._safe_read_csv(ARQUIVOS["epis"])
-             # Clean types before matching/updating
+             # Limpa tipos antes de corresponder/atualizar
              df_epis["CA"] = df_epis["CA"].astype(str).fillna("").str.strip().str.upper()
              df_epis["DESCRICAO"] = df_epis["DESCRICAO"].astype(str).fillna("").str.strip().str.upper()
              df_epis["QUANTIDADE"] = pd.to_numeric(df_epis["QUANTIDADE"], errors='coerce').fillna(0)
 
 
-             # Find the original EPI row again based on CA primarily, then description
+             # Encontra a linha do EPI original novamente com base no CA primariamente, depois descrição
              match = df_epis[df_epis["CA"] == ca_to_edit] if ca_to_edit else pd.DataFrame()
              if match.empty and desc_to_edit:
-                 match = df_epis[(df_epis["DESCRICAO"] == desc_to_edit) & (df_epis["CA"] == ca_to_edit)] # Be precise
+                 match = df_epis[(df_epis["DESCRICAO"] == desc_to_edit) & (df_epis["CA"] == ca_to_edit)] # Seja preciso
 
              if match.empty:
                   messagebox.showerror("Erro", f"EPI original (CA:{ca_to_edit}/Desc:{desc_to_edit}) não encontrado no arquivo para salvar.", parent=self.epis_tab)
@@ -1581,30 +1581,30 @@ class AlmoxarifadoApp:
              idx = match.index[0]
 
              try:
-                    # Check for potential CA/Description conflicts before updating
+                    # Verifica possíveis conflitos de CA/Descrição antes de atualizar
                     new_ca = updated_data['CA'].strip().upper()
                     new_desc = updated_data['DESCRICAO'].strip().upper()
 
-                    # Check if the *new* CA exists elsewhere (excluding current row)
+                    # Verifica se o *novo* CA existe em outro lugar (excluindo linha atual)
                     if new_ca and any((df_epis['CA'] == new_ca) & (df_epis.index != idx)):
                         messagebox.showerror("Erro de Duplicidade", f"O CA '{new_ca}' já existe para outro EPI.", parent=self.epis_tab)
                         return
-                    # Check if the *new* Description exists elsewhere (excluding current row) AND the CA is different or blank
+                    # Verifica se a *nova* Descrição existe em outro lugar (excluindo linha atual) E o CA é diferente ou em branco
                     desc_conflict = df_epis[(df_epis['DESCRICAO'] == new_desc) & (df_epis.index != idx) & (df_epis['CA'] != new_ca if new_ca else True)]
                     if not desc_conflict.empty:
                         messagebox.showerror("Erro de Duplicidade", f"A Descrição '{new_desc}' já existe para outro EPI com CA diferente ou vazio.", parent=self.epis_tab)
                         return
 
-                    # Update fields from dialog result
+                    # Atualiza campos do resultado do diálogo
                     df_epis.loc[idx, "CA"] = new_ca
                     df_epis.loc[idx, "DESCRICAO"] = new_desc
                     df_epis.loc[idx, "QUANTIDADE"] = pd.to_numeric(updated_data['QUANTIDADE'])
 
-                    # Save updated DataFrame to CSV
+                    # Salva DataFrame atualizado para CSV
                     if self._safe_write_csv(df_epis, ARQUIVOS["epis"]):
                         messagebox.showinfo("Sucesso", f"EPI '{new_desc}' atualizado.", parent=self.epis_tab)
-                        self._atualizar_tabela_epis() # Refresh view
-                    # else: Error handled
+                        self._atualizar_tabela_epis() # Atualiza visualização
+                    # else: Erro tratado
 
              except Exception as e:
                  self._update_status(f"Erro ao aplicar edições EPI: {e}", error=True)
@@ -1612,7 +1612,7 @@ class AlmoxarifadoApp:
 
 
     def _delete_selected_epi(self):
-        """Handles deleting the selected EPI."""
+        """Lida com a exclusão do EPI selecionado."""
         selected_epi_series = self._get_selected_data(self.epis_table)
 
         if selected_epi_series is None:
@@ -1632,38 +1632,38 @@ class AlmoxarifadoApp:
             df_epis["CA"] = df_epis["CA"].astype(str).fillna("").str.strip().str.upper()
             df_epis["DESCRICAO"] = df_epis["DESCRICAO"].astype(str).fillna("").str.strip().str.upper()
 
-            # Find based on CA primarily, then description as fallback ID
+            # Encontra com base no CA primariamente, depois descrição como ID de fallback
             match = df_epis[df_epis["CA"] == ca_to_delete] if ca_to_delete else pd.DataFrame()
             if match.empty and desc_to_delete:
-                  # Match description only if CA was originally blank too
-                 match = df_epis[(df_epis["DESCRICAO"] == desc_to_delete) & (df_epis["CA"] == ca_to_delete)] # Precise match
+                  # Corresponde descrição apenas se CA também estava originalmente em branco
+                 match = df_epis[(df_epis["DESCRICAO"] == desc_to_delete) & (df_epis["CA"] == ca_to_delete)] # Correspondência precisa
 
             if match.empty:
                  messagebox.showerror("Erro", f"EPI original (CA:{ca_to_delete}/Desc:{desc_to_delete}) não encontrado no arquivo para excluir.", parent=self.epis_tab)
                  return
 
-            idx = match.index.tolist() # Get all matching indices
+            idx = match.index.tolist() # Obtém todos os índices correspondentes
             df_epis.drop(idx, inplace=True)
 
             if self._safe_write_csv(df_epis, ARQUIVOS["epis"]):
                  messagebox.showinfo("Sucesso", f"EPI '{desc_to_delete}' excluído.", parent=self.epis_tab)
-                 self._atualizar_tabela_epis() # Refresh view
-            # else: Error handled
+                 self._atualizar_tabela_epis() # Atualiza visualização
+            # else: Erro tratado
 
 
-    # --- Backup and Export ---
+    # --- Backup e Exportação ---
 
     def _criar_backup_periodico(self):
-        """Creates timestamped backups of data files."""
+        """Cria backups com timestamp dos arquivos de dados."""
         arquivo_ultimo_backup = os.path.join(BACKUP_DIR, "ultimo_backup_timestamp.txt")
-        backup_interval_seconds = 3 * 60 * 60 # 3 hours
+        backup_interval_seconds = 3 * 60 * 60 # 3 horas
 
-        # --- Cleanup Old Backups (More robustly) ---
+        # --- Limpeza de Backups Antigos (Mais robustamente) ---
         try:
             now = time.time()
-            cutoff_time = now - (3 * 24 * 60 * 60) # 3 days ago
+            cutoff_time = now - (3 * 24 * 60 * 60) # 3 dias atrás
             for filename in os.listdir(BACKUP_DIR):
-                if filename.endswith(".csv") and "_backup_" in filename: # Target specific backups
+                if filename.endswith(".csv") and "_backup_" in filename: # Alvo backups específicos
                     file_path = os.path.join(BACKUP_DIR, filename)
                     try:
                         file_mod_time = os.path.getmtime(file_path)
@@ -1671,12 +1671,12 @@ class AlmoxarifadoApp:
                             os.remove(file_path)
                             print(f"Backup antigo removido: {filename}")
                     except OSError as e:
-                         print(f"Erro ao processar/remover backup antigo {filename}: {e}") # Log error but continue
+                         print(f"Erro ao processar/remover backup antigo {filename}: {e}") # Registra erro mas continua
         except Exception as e:
-            self._update_status(f"Erro ao limpar backups antigos: {e}", error=True) # Log general cleanup error
+            self._update_status(f"Erro ao limpar backups antigos: {e}", error=True) # Registra erro geral de limpeza
 
 
-        # --- Create New Backup if Interval Elapsed ---
+        # --- Cria Novo Backup se o Intervalo Passou ---
         perform_backup = True
         if os.path.exists(arquivo_ultimo_backup):
             try:
@@ -1686,7 +1686,7 @@ class AlmoxarifadoApp:
                     perform_backup = False
             except (ValueError, FileNotFoundError) as e:
                 print(f"Erro ao ler timestamp do último backup: {e}. Criando novo backup.")
-                perform_backup = True # Force backup if timestamp file is bad
+                perform_backup = True # Força backup se o arquivo de timestamp estiver ruim
 
         if perform_backup:
             timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -1696,10 +1696,10 @@ class AlmoxarifadoApp:
                     if os.path.exists(arquivo_origem):
                         nome_backup = f"{nome}_{timestamp}_auto.csv"
                         caminho_backup = os.path.join(BACKUP_DIR, nome_backup)
-                        shutil.copy2(arquivo_origem, caminho_backup) # copy2 preserves metadata
+                        shutil.copy2(arquivo_origem, caminho_backup) # copy2 preserva metadados
                         backup_count += 1
 
-                # Only update timestamp if backup was successful
+                # Só atualiza timestamp se o backup foi bem-sucedido
                 if backup_count > 0:
                     with open(arquivo_ultimo_backup, "w", encoding="utf-8") as f:
                         f.write(str(time.time()))
@@ -1710,16 +1710,16 @@ class AlmoxarifadoApp:
 
             except Exception as e:
                 self._update_status(f"Erro durante backup automático: {e}", error=True)
-                messagebox.showerror("Erro de Backup", f"Falha ao criar backup automático:\n{e}", parent=self.root) # Show error if GUI is up
+                messagebox.showerror("Erro de Backup", f"Falha ao criar backup automático:\n{e}", parent=self.root) # Mostra erro se a GUI estiver ativa
 
     def _schedule_backup(self):
-        """Calls backup function periodically."""
+        """Chama a função de backup periodicamente."""
         self._criar_backup_periodico()
-        self.root.after(10800000, self._schedule_backup) # Reschedule
+        self.root.after(10800000, self._schedule_backup) # Reagenda
 
 
     def _exportar_conteudo(self):
-        """Exports current data to Excel and generates txt report for low stock."""
+        """Exporta dados atuais para Excel e gera relatório txt para estoque baixo."""
         pasta_saida = "Relatorios"
         os.makedirs(pasta_saida, exist_ok=True)
 
@@ -1729,13 +1729,13 @@ class AlmoxarifadoApp:
 
         try:
             with pd.ExcelWriter(caminho_excel) as writer:
-                # Include EPIs in export
+                # Inclui EPIs na exportação
                 all_files = {**ARQUIVOS}
                 self._update_status("Iniciando exportação para Excel...")
                 sheet_count = 0
                 for nome, arquivo in all_files.items():
                      try:
-                         df_export = self._safe_read_csv(arquivo) # Read fresh data
+                         df_export = self._safe_read_csv(arquivo) # Lê dados frescos
                          if not df_export.empty:
                              df_export.to_excel(writer, sheet_name=nome.capitalize(), index=False)
                              sheet_count +=1
@@ -1747,12 +1747,12 @@ class AlmoxarifadoApp:
 
             self._update_status(f"Exportação Excel concluída ({sheet_count} planilhas). Gerando relatório de esgotados...")
 
-            # Produtos Esgotados Report
+            # Relatório de Produtos Esgotados
             df_estoque_report = self._safe_read_csv(ARQUIVOS["estoque"])
             if not df_estoque_report.empty and "QUANTIDADE" in df_estoque_report.columns and "CODIGO" in df_estoque_report.columns and "DESCRICAO" in df_estoque_report.columns:
-                 # Ensure quantidade is numeric before filtering
+                 # Garante que quantidade seja numérica antes de filtrar
                  df_estoque_report["QUANTIDADE"] = pd.to_numeric(df_estoque_report["QUANTIDADE"], errors='coerce').fillna(0)
-                 produtos_esgotados = df_estoque_report[df_estoque_report["QUANTIDADE"] <= 0] # Changed to <= 0
+                 produtos_esgotados = df_estoque_report[df_estoque_report["QUANTIDADE"] <= 0] # Mudado para <= 0
 
                  with open(caminho_txt, "w", encoding="utf-8") as f:
                      f.write(f"Relatório de Produtos Esgotados/Zerados - {data_atual}\n")
@@ -1778,16 +1778,16 @@ class AlmoxarifadoApp:
             messagebox.showerror("Erro de Exportação", f"Falha ao exportar relatórios:\n{e}", parent=self.root)
 
 
-    # --- Application Closing ---
+    # --- Fechamento da Aplicação ---
 
     def _on_close(self):
-        """Handles window close event."""
+        """Lida com o evento de fechamento da janela."""
         if messagebox.askyesno("Confirmar Saída", "Deseja realmente fechar o aplicativo?", icon='warning'):
             print("Fechando aplicativo...")
             self.root.destroy()
 
 
-# --- Login Window Class ---
+# --- Classe da Janela de Login ---
 
 class LoginWindow:
     def __init__(self, root):
@@ -1795,11 +1795,11 @@ class LoginWindow:
         self.root.title("Almoxarifado - Login")
         self.root.geometry("300x250")
         self.root.resizable(False, False)
-        self.root.protocol("WM_DELETE_WINDOW", self._on_close_login) # Handle closing login window
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close_login) # Lida com o fechamento da janela de login
 
-        self.logged_in_user_id = None # Store the ID on successful login
+        self.logged_in_user_id = None # Armazena o ID no login bem-sucedido
 
-        # Style
+        # Estilo
         style = ttk.Style()
         style.theme_use('clam')
 
@@ -1813,22 +1813,22 @@ class LoginWindow:
         self.usuario_entry = ttk.Entry(login_frame, width=30)
         self.usuario_entry.config(font="-size 12")
         self.usuario_entry.pack(pady=(0, 10))
-        self.usuario_entry.bind("<Return>", lambda e: self.senha_entry.focus_set()) # Focus password on Enter
+        self.usuario_entry.bind("<Return>", lambda e: self.senha_entry.focus_set()) # Foca senha no Enter
 
         ttk.Label(login_frame, text="Senha:", font="-size 12").pack(pady=(5, 0))
         self.senha_entry = ttk.Entry(login_frame, show="*", width=30)
-        self.senha_entry.config(font="-size 12")   
+        self.senha_entry.config(font="-size 12")
         self.senha_entry.pack(pady=(0, 15))
-        self.senha_entry.bind("<Return>", lambda e: self._validate_login()) # Validate on Enter
+        self.senha_entry.bind("<Return>", lambda e: self._validate_login()) # Valida no Enter
 
-        # Use Accent style for login button if available
-        style.configure("Accent.TButton", foreground="white", background="#0078D7") # Example accent color
+        # Usa estilo Accent para o botão de login se disponível
+        style.configure("Accent.TButton", foreground="white", background="#0078D7") # Exemplo de cor accent
         login_button = ttk.Button(login_frame, text="Entrar", command=self._validate_login, style="Accent.TButton")
         login_button.config(width=25, padding=5)
         login_button.pack(pady=5)
 
-        # Center the window
-        self.root.update_idletasks() # Ensure geometry is updated
+        # Centraliza a janela
+        self.root.update_idletasks() # Garante que a geometria seja atualizada
         x = (self.root.winfo_screenwidth() // 2) - (self.root.winfo_width() // 2)
         y = (self.root.winfo_screenheight() // 2) - (self.root.winfo_height() // 2)
         self.root.geometry(f'+{x}+{y}')
@@ -1837,47 +1837,47 @@ class LoginWindow:
 
 
     def _validate_login(self):
-        """Validates user credentials."""
+        """Valida as credenciais do usuário."""
         usuario = self.usuario_entry.get().strip()
-        senha = self.senha_entry.get() # Get password exactly as entered
+        senha = self.senha_entry.get() # Obtém a senha exatamente como digitada
 
         if not usuario or not senha:
             messagebox.showwarning("Login Inválido", "Por favor, preencha usuário e senha.", parent=self.root)
             return
 
-        # WARNING: Plain text comparison! Insecure! Use hashing (e.g., bcrypt).
+        # AVISO: Comparação de texto plano! Inseguro! Use hashing (ex: bcrypt).
         if usuario in usuarios and usuarios[usuario]["senha"] == senha:
             self.logged_in_user_id = usuarios[usuario]["id"]
             messagebox.showinfo("Sucesso", f"Login bem-sucedido!\nOperador ID: {self.logged_in_user_id}", parent=self.root)
-            self.root.destroy() # Close login window
+            self.root.destroy() # Fecha a janela de login
         else:
             messagebox.showerror("Erro", "Usuário ou senha inválidos!", parent=self.root)
-            self.senha_entry.delete(0, tk.END) # Clear password field on failure
+            self.senha_entry.delete(0, tk.END) # Limpa o campo de senha na falha
 
 
     def _on_close_login(self):
-        """Handles closing the login window directly."""
+        """Lida com o fechamento direto da janela de login."""
         if messagebox.askyesno("Confirmar Saída", "Deseja realmente sair do aplicativo?", icon='question', parent=self.root):
-             self.logged_in_user_id = None # Ensure no user ID is set
-             self.root.destroy() # Close window
-             # sys.exit() or os._exit(0) can be used here if needed, but destroying root usually suffices
+             self.logged_in_user_id = None # Garante que nenhum ID de usuário seja definido
+             self.root.destroy() # Fecha a janela
+             # sys.exit() ou os._exit(0) podem ser usados aqui se necessário, mas destruir a root geralmente é suficiente
 
     def get_user_id(self):
          return self.logged_in_user_id
 
 
-# --- Main Execution ---
+# --- Execução Principal ---
 
 if __name__ == "__main__":
-    # 1. Show Login Window
+    # 1. Mostra Janela de Login
     login_root = tk.Tk()
     login_app = LoginWindow(login_root)
     login_root.mainloop()
 
-    # 2. Proceed only if login was successful
+    # 2. Prossegue apenas se o login foi bem-sucedido
     user_id = login_app.get_user_id()
     if user_id:
-        # 3. Launch Main Application Window
+        # 3. Lança Janela Principal da Aplicação
         main_root = tk.Tk()
         app = AlmoxarifadoApp(main_root, user_id)
         main_root.mainloop()
