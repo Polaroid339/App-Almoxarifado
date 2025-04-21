@@ -239,16 +239,16 @@ class AlmoxarifadoApp:
 
         self.root.title(f"Almoxarifado - Operador: {self.operador_logado_id}")
         self.root.geometry("1150x650") # Slightly larger for status bar
-        self.root.config(bg="#E0E0E0") # Lighter background
+        # self.root.config(bg="#E0E0E0") # Lighter background
         # self.root.resizable(False, False) # Consider allowing resizing
 
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # --- CORRECTED ORDER ---
         self._criar_pastas_e_planilhas()
-        self._setup_ui()                # <--- Call UI setup FIRST
-        self._criar_backup_periodico()  # <--- THEN call backup check
-        self._load_and_display_table(self.active_table_name) # Load initial table
+        self._setup_ui()
+        self._criar_backup_periodico()
+        self._load_and_display_table(self.active_table_name)
 
         # Schedule periodic backup check (e.g., every 3 hours)
         self.root.after(10800000, self._schedule_backup) # 10800000 ms = 3 hours
@@ -265,7 +265,7 @@ class AlmoxarifadoApp:
             self.status_var = tk.StringVar()
             # Temporarily pack status bar at top to reserve space, then move it
             self.status_bar = ttk.Label(main_frame, textvariable=self.status_var, relief=tk.SUNKEN, anchor=tk.W, padding="2 5")
-            # self.status_bar.pack(side=tk.BOTTOM, fill=tk.X) # Pack later
+            self.status_bar.pack(side=tk.BOTTOM, fill=tk.X) # Pack later
 
 
             # Notebook (Tabs)
@@ -328,7 +328,6 @@ class AlmoxarifadoApp:
         general_action_frame = ttk.LabelFrame(action_frame, text="Ações", padding="5")
         general_action_frame.pack(side=tk.LEFT, padx=(0, 10))
         ttk.Button(general_action_frame, text="Atualizar", command=self._atualizar_tabela_atual).pack(side=tk.LEFT, padx=2)
-        # Save button is removed - edits are saved via Edit/Delete dialogs or movements
 
 
         # Export Frame (Grouped)
