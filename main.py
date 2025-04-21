@@ -799,7 +799,6 @@ class AlmoxarifadoApp:
             self._on_table_select() # Update button states
         except Exception as e:
             self._update_status(f"Erro ao exibir tabela '{table_name.capitalize()}': {e}", error=True)
-            messagebox.showerror("Erro de Exibição", f"Não foi possível exibir a tabela {table_name.capitalize()}.\n\nDetalhes: {e}")
 
     def _atualizar_tabela_atual(self):
         """Reloads data for the currently active table view."""
