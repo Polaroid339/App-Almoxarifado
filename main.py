@@ -1043,5 +1043,4 @@ registrar_retirada_button.config(bg="#54befc", fg="#000", font=("Arial", 12))
 registrar_retirada_button.place(x=700, y=510, width=300, height=40)
 
 
-
 main.mainloop()
