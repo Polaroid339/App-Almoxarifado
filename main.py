@@ -2020,8 +2020,7 @@ class AlmoxarifadoApp:
                                   # Garante que CODIGO e DESCRICAO são strings para o f-string
                                   codigo_str = str(row['CODIGO'])
                                   desc_str = str(row['DESCRICAO'])
-                                  qtd_str = str(row['QUANTIDADE'])
-                                  f.write(f"Código: {codigo_str} | Descrição: {desc_str} | Qtd: {qtd_str}\n")
+                                  f.write(f"Código: {codigo_str} | Descrição: {desc_str}\n")
                          else:
                              f.write("Nenhum produto com quantidade zero ou negativa encontrado.\n")
                          f.write("=" * 50 + "\n")
