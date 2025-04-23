@@ -141,12 +141,24 @@ class EditDialogBase(tk.Toplevel):
         pass
 
     def _add_entry(self, frame, field_key, label_text, row, col, **kwargs):
-        """Auxiliar para criar rótulo e entrada."""
+        """Auxiliar para criar rótulo e entrada. (CORRIGIDO)"""
+
+        entry_state = kwargs.pop('state', tk.NORMAL) # Padrão é NORMAL se não especificado
+
         ttk.Label(frame, text=label_text + ":").grid(row=row, column=col*2, sticky=tk.W, padx=5, pady=2)
+        # Cria a entry sem o estado 'readonly' inicialmente
         entry = ttk.Entry(frame, **kwargs)
         entry.grid(row=row, column=col*2 + 1, sticky=tk.EW, padx=5, pady=2)
+
+        # Insere o valor PRIMEIRO
         if field_key in self.item_data:
-             entry.insert(0, str(self.item_data[field_key]))
+             # Adiciona uma verificação para garantir que o valor não seja NaN ou None antes de converter para string
+             value_to_insert = str(self.item_data[field_key]) if pd.notna(self.item_data[field_key]) else ""
+             entry.insert(0, value_to_insert)
+
+        if entry_state == 'readonly':
+            entry.config(state='readonly')
+
         self.entries[field_key] = entry
         frame.columnconfigure(col*2 + 1, weight=1) # Faz a entrada expandir
 
@@ -154,6 +166,7 @@ class EditDialogBase(tk.Toplevel):
         # A ser implementado pelas subclasses para validação específica
         collected_data = {}
         for key, entry in self.entries.items():
+             # Se a entry for readonly, buscamos seu valor da mesma forma
              collected_data[key] = entry.get().strip()
         return collected_data # Retorna os dados coletados
 
@@ -164,6 +177,7 @@ class EditDialogBase(tk.Toplevel):
                 self.destroy()
         except ValueError as e:
             messagebox.showerror("Erro de Validação", str(e), parent=self)
+
 
 
 class EditProductDialog(EditDialogBase):
