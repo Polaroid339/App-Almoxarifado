@@ -16,6 +16,15 @@ PLANILHAS_DIR = "Planilhas"
 BACKUP_DIR = "Backups"
 COLABORADORES_DIR = "Colaboradores"
 
+# Próximo ao topo do arquivo (onde já está definido)
+EXPECTED_COLUMNS = {
+    "estoque": ["CODIGO", "DESCRICAO", "CLASSIFICACAO", "VALOR UN", "VALOR TOTAL", "QUANTIDADE", "DATA", "LOCALIZACAO", "NF/PEDIDO"],
+    "entrada": ["CODIGO", "DESCRICAO", "CLASSIFICACAO", "QUANTIDADE", "VALOR UN", "VALOR TOTAL", "DATA", "ID", "NF/PEDIDO", "DATA EMISSAO"],
+    # MODIFICADO: Adiciona VALOR, SETOR, NF/PEDIDO a Saida
+    "saida": ["CODIGO", "DESCRICAO", "QUANTIDADE", "VALOR", "SOLICITANTE", "SETOR", "NF/PEDIDO", "DATA", "ID"],
+    "epis": ["CA", "DESCRICAO", "QUANTIDADE"]
+}
+
 ARQUIVOS = {
     "estoque": os.path.join(PLANILHAS_DIR, "Estoque.csv"),
     "entrada": os.path.join(PLANILHAS_DIR, "Entrada.csv"),
@@ -512,35 +521,114 @@ class AlmoxarifadoApp:
         # --- Frame de Saída (Unchanged for now) ---
         saida_frame = ttk.LabelFrame(self.movimentacao_tab, text="Registrar Saída", padding="15")
         saida_frame.grid(row=0, column=2, sticky="nsew", padx=(10, 0))
-        saida_frame.columnconfigure(1, weight=1)
+        saida_frame.columnconfigure(1, weight=1) # Faz as entradas expandirem
 
-        self.saida_widgets_ordered = []
+        self.saida_widgets_ordered = [] # Ordem para tecla Enter/Tab
+
+        # Código
         ttk.Label(saida_frame, text="Código:", font="-size 12").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
         self.saida_codigo_entry = ttk.Entry(saida_frame, font="-size 12")
         self.saida_codigo_entry.grid(row=0, column=1, sticky=tk.EW, padx=(0,2))
+        # ** Bind para popular dropdown quando o código mudar (FocusOut ou Return) **
+        self.saida_codigo_entry.bind("<FocusOut>", self._update_saida_nf_dropdown_event)
+        self.saida_codigo_entry.bind("<Return>", self._update_saida_nf_dropdown_event) # Também no Enter
         self.saida_widgets_ordered.append(self.saida_codigo_entry)
         ttk.Button(saida_frame, text="Buscar", width=8, command=lambda: self._show_product_lookup("saida"), style="Secondary.TButton").grid(row=0, column=2, sticky=tk.W, padx=(2,5))
 
+        # Solicitante
         ttk.Label(saida_frame, text="Solicitante:", font="-size 12").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
         self.saida_solicitante_entry = ttk.Entry(saida_frame, font="-size 12")
         self.saida_solicitante_entry.grid(row=1, column=1, columnspan=2, sticky=tk.EW, padx=5)
         self.saida_widgets_ordered.append(self.saida_solicitante_entry)
 
-        ttk.Label(saida_frame, text="Qtd. Saída:", font="-size 12").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
+        # Setor (Novo)
+        ttk.Label(saida_frame, text="Setor:", font="-size 12").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
+        self.saida_setor_entry = ttk.Entry(saida_frame, font="-size 12")
+        self.saida_setor_entry.grid(row=2, column=1, columnspan=2, sticky=tk.EW, padx=5)
+        self.saida_widgets_ordered.append(self.saida_setor_entry)
+
+        # Qtd. Saída
+        ttk.Label(saida_frame, text="Qtd. Saída:", font="-size 12").grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
         self.saida_qtd_entry = ttk.Entry(saida_frame, font="-size 12")
-        self.saida_qtd_entry.grid(row=2, column=1, columnspan=2, sticky=tk.EW, padx=5)
+        self.saida_qtd_entry.grid(row=3, column=1, columnspan=2, sticky=tk.EW, padx=5)
         self.saida_widgets_ordered.append(self.saida_qtd_entry)
 
-        # Bind Enter for focus in Saida tab
+        # NF/Pedido (Novo - Dropdown)
+        ttk.Label(saida_frame, text="NF/Ped. (Origem):", font="-size 12").grid(row=4, column=0, sticky=tk.W, padx=5, pady=5)
+        self.saida_nf_pedido_combo = ttk.Combobox(saida_frame, state="disabled", font="-size 12") # Começa desabilitado
+        self.saida_nf_pedido_combo['values'] = ["(Informe o Código)"]
+        self.saida_nf_pedido_combo.current(0)
+        self.saida_nf_pedido_combo.grid(row=4, column=1, columnspan=2, sticky=tk.EW, padx=5)
+        self.saida_widgets_ordered.append(self.saida_nf_pedido_combo) # Adicionado à ordem de foco
+
+        # Bind Enter for focus in Saida tab (Ajustado)
         for i, widget in enumerate(self.saida_widgets_ordered):
+            # Se não for o último widget, foca o próximo
             if i < len(self.saida_widgets_ordered) - 1:
-                 widget.bind("<Return>", lambda e, next_widget=self.saida_widgets_ordered[i+1]: self._focus_widget(next_widget)) # Use helper
+                 next_widget = self.saida_widgets_ordered[i+1]
+                 # Tratamento especial para o campo código - não avançar foco no Return se chamar dropdown
+                 if widget == self.saida_codigo_entry:
+                     # O binding de <Return> no código já chama a atualização do dropdown,
+                     # não queremos avançar o foco automaticamente *nele*, deixamos
+                     # o usuário Tabular ou clicar para o próximo campo após ver as NFs.
+                     # Ou podemos chamar `_focus_widget(next_widget)` dentro de _update_saida_nf_dropdown_event
+                     # Vamos tentar não focar automaticamente no Return do código por enquanto.
+                     pass
+                 else:
+                     widget.bind("<Return>", lambda e, nw=next_widget: self._focus_widget(nw))
+
+            # Se for o último widget (o Combobox), liga o Enter à função de registrar
             else:
                 widget.bind("<Return>", lambda e: self._registrar_saida())
+                # Permitir também acionar com Enter no penúltimo (Qtd Saída) se NF for opcional
+                self.saida_qtd_entry.bind("<Return>", lambda e: self._registrar_saida()) # Duplica no QTD caso o user pule NF
 
+        # Botão Registrar Saída (Row ajustado)
         saida_button = ttk.Button(saida_frame, text="Registrar Saída", command=self._registrar_saida, style="Success.TButton")
-        saida_button.grid(row=3, column=0, columnspan=3, pady=(15, 5), sticky=tk.EW)
+        saida_button.grid(row=5, column=0, columnspan=3, pady=(15, 5), sticky=tk.EW)
 
+    # --- Handler de Evento para chamar o preenchimento do dropdown ---
+    def _update_saida_nf_dropdown_event(self, event=None):
+        """Chamado pelo FocusOut ou Return do campo Código da Saída."""
+        codigo = self.saida_codigo_entry.get().strip()
+        self._populate_saida_nf_dropdown(codigo)
+        # Decidir se avança o foco aqui
+        # self._focus_widget(self.saida_solicitante_entry) # Avança para solicitante?
+        return "break" # Impede processamento adicional do Enter se chamado por <Return>
+
+    # --- Nova Função para Popular o Dropdown de NF/Pedido da Saída ---
+    def _populate_saida_nf_dropdown(self, codigo):
+        """Busca NFs/Pedidos do produto e atualiza o combobox de Saída."""
+        if not codigo:
+            self.saida_nf_pedido_combo.config(state="disabled")
+            self.saida_nf_pedido_combo['values'] = ["(Informe o Código)"]
+            self.saida_nf_pedido_combo.current(0)
+            return
+
+        produto_atual = self._buscar_produto(codigo)
+
+        if produto_atual is None or "NF/PEDIDO" not in produto_atual:
+            self.saida_nf_pedido_combo.config(state="disabled")
+            self.saida_nf_pedido_combo['values'] = ["(Produto s/ NFs)"]
+            self.saida_nf_pedido_combo.current(0)
+            return
+
+        nf_pedido_string = produto_atual["NF/PEDIDO"] # Já vem parseado se _buscar_produto for usado corretamente
+
+        # Mas _buscar_produto retorna a série original, precisamos parsear aqui ou modificar _buscar_produto
+        # Vamos parsear aqui por segurança, usando nosso helper
+        nf_list = self._parse_nf_pedido_list(str(nf_pedido_string)) # Converte pra string antes de parsear
+
+        if nf_list:
+             # Adiciona opção vazia no início para permitir saída sem atrelar NF
+            display_values = [""] + nf_list
+            self.saida_nf_pedido_combo['values'] = display_values
+            self.saida_nf_pedido_combo.config(state="readonly") # Permite selecionar
+            self.saida_nf_pedido_combo.current(0) # Seleciona a opção vazia por padrão
+        else:
+            self.saida_nf_pedido_combo['values'] = ["SEM NF"]
+            self.saida_nf_pedido_combo.config(state="disabled")
+            self.saida_nf_pedido_combo.current(0)
 
     def _create_epis_tab(self):
         # This tab remains unchanged based on current requirements
@@ -1377,13 +1465,48 @@ class AlmoxarifadoApp:
                  messagebox.showerror("Erro ao Salvar Entrada", f"Não foi possível salvar a entrada:\n{e}", parent=self.movimentacao_tab)
 
 
+    def _parse_nf_pedido_list(self, nf_pedido_string):
+        """Tenta parsear uma string para uma lista de NF/Pedidos. Retorna lista."""
+        nf_pedido_list = []
+        if isinstance(nf_pedido_string, str) and nf_pedido_string.strip().startswith('[') and nf_pedido_string.strip().endswith(']'):
+            try:
+                parsed = ast.literal_eval(nf_pedido_string)
+                if isinstance(parsed, list):
+                    # Garante que todos os itens da lista sejam strings
+                    nf_pedido_list = [str(item).strip() for item in parsed if str(item).strip()]
+                else: # Se parseou algo que não é lista
+                    nf_pedido_list = [str(parsed).strip()] if str(parsed).strip() else []
+            except (ValueError, SyntaxError):
+                    # Se parse falhou, mas parece lista, tenta pegar conteúdo interno
+                    # Isso é um fallback mais complexo, pode simplificar se não necessário
+                    content = nf_pedido_string.strip()[1:-1].strip()
+                    if content:
+                        # Tenta split por vírgula e limpar aspas/espaços
+                        nf_pedido_list = [item.strip().strip("'").strip('"').strip() for item in content.split(',') if item.strip()]
+                    else:
+                        nf_pedido_list = [] # Lista vazia se falhar totalmente
+
+        elif isinstance(nf_pedido_string, str) and nf_pedido_string.strip():
+                # Se for só uma string não-lista, trata como lista de um item
+            nf_pedido_list = [nf_pedido_string.strip()]
+        # Ignora outros tipos ou vazios/NaN (retorna lista vazia)
+
+        # Remove duplicatas e ordena (opcional, mas pode ser útil)
+        # return sorted(list(set(nf_pedido_list)))
+        # Ou apenas remove duplicatas sem ordenar
+        return list(dict.fromkeys(nf_pedido_list)) # Preserva ordem enquanto remove duplicatas
+
     def _registrar_saida(self):
         """Registra a saída de um produto do estoque."""
-        # No changes needed here based on requirements
         codigo = self.saida_codigo_entry.get().strip()
         solicitante = self.saida_solicitante_entry.get().strip().upper()
+        # ** Pega valor do Setor **
+        setor = self.saida_setor_entry.get().strip().upper()
         qtd_str = self.saida_qtd_entry.get().strip().replace(",",".")
+        # ** Pega valor do Combobox NF/Pedido **
+        nf_pedido_selecionado = self.saida_nf_pedido_combo.get().strip()
 
+        # --- Validações ---
         if not codigo:
              messagebox.showerror("Erro de Validação", "Código do produto não pode ser vazio.", parent=self.movimentacao_tab)
              self.saida_codigo_entry.focus_set()
@@ -1392,6 +1515,19 @@ class AlmoxarifadoApp:
              messagebox.showerror("Erro de Validação", "Nome do Solicitante não pode ser vazio.", parent=self.movimentacao_tab)
              self.saida_solicitante_entry.focus_set()
              return
+        # ** Validação do Setor (Opcional, exemplo: não pode ser vazio) **
+        if not setor:
+             messagebox.showerror("Erro de Validação", "Setor não pode ser vazio.", parent=self.movimentacao_tab)
+             self.saida_setor_entry.focus_set()
+             return
+        # ** Validação do NF/Pedido (Opcional) **
+        # Se for mandatório selecionar uma NF (e ela existir):
+        # if self.saida_nf_pedido_combo['state'] == 'readonly' and not nf_pedido_selecionado:
+        #      messagebox.showerror("Erro de Validação", "Selecione uma NF/Pedido de origem.", parent=self.movimentacao_tab)
+        #      self.saida_nf_pedido_combo.focus_set()
+        #      return
+        # Se for opcional, não precisa validar aqui, mas tratar o valor vazio abaixo.
+
         try:
             quantidade_retirada = float(qtd_str)
             if quantidade_retirada <= 0:
@@ -1401,6 +1537,7 @@ class AlmoxarifadoApp:
             self.saida_qtd_entry.focus_set()
             return
 
+        # --- Busca Produto e Calcula Valor ---
         produto_atual = self._buscar_produto(codigo)
         if produto_atual is None:
             messagebox.showerror("Erro", f"Produto com código '{codigo}' não encontrado no estoque.", parent=self.movimentacao_tab)
@@ -1408,49 +1545,87 @@ class AlmoxarifadoApp:
             return
 
         desc = produto_atual.get("DESCRICAO", "N/A")
-        qtd_atual = pd.to_numeric(produto_atual.get("QUANTIDADE", 0), errors='coerce').fillna(0)
+
+        # --- CORREÇÃO APLICADA AQUI (val_un) ---
+        val_un_raw = produto_atual.get("VALOR UN", 0)
+        val_un = pd.to_numeric(val_un_raw, errors='coerce')
+        if pd.isna(val_un):
+             val_un = 0.0
+
+        # --- CORREÇÃO APLICADA AQUI (qtd_atual) ---
+        qtd_atual_raw = produto_atual.get("QUANTIDADE", 0)
+        qtd_atual = pd.to_numeric(qtd_atual_raw, errors='coerce')
+        if pd.isna(qtd_atual):
+            qtd_atual = 0.0
+        # --- FIM DA SEÇÃO CORRIGIDA ---
 
         if quantidade_retirada > qtd_atual:
              messagebox.showerror("Erro", f"Quantidade insuficiente no estoque!\n\nDisponível para '{desc}': {qtd_atual}\nSolicitado: {quantidade_retirada}", parent=self.movimentacao_tab)
              self.saida_qtd_entry.focus_set()
              return
 
+        # ** Calcula o Valor da Saída **
+        valor_saida = round(quantidade_retirada * val_un, 2)
+
         nova_quantidade_estoque = qtd_atual - quantidade_retirada
         data_hora = datetime.now().strftime("%H:%M %d/%m/%Y")
 
+        # Trata NF/Pedido selecionado vazio para o save (salva string vazia)
+        nf_pedido_para_salvar = nf_pedido_selecionado if nf_pedido_selecionado else ""
+
+        # --- Mensagem de Confirmação Atualizada ---
         confirm_msg = (f"Registrar Saída?\n\n"
                        f"Código: {codigo} ({desc})\n"
                        f"Solicitante: {solicitante}\n"
+                       f"Setor: {setor}\n"                   # Adicionado
                        f"Qtd. a retirar: {quantidade_retirada}\n"
+                       f"Valor da Saída: R$ {valor_saida:.2f}\n" # Adicionado
+                       f"NF/Ped. Origem: {nf_pedido_para_salvar if nf_pedido_para_salvar else '-'}\n" # Adicionado/Ajustado
                        f"Qtd. Restante: {nova_quantidade_estoque}")
 
         if messagebox.askyesno("Confirmar Saída", confirm_msg, parent=self.movimentacao_tab):
+            # 1. Registrar na planilha de Saída (com novos campos)
             saida_data = {
                  "CODIGO": codigo, "DESCRICAO": desc, "QUANTIDADE": quantidade_retirada,
-                 "SOLICITANTE": solicitante, "DATA": data_hora, "ID": self.operador_logado_id
+                 "VALOR": valor_saida,            # Adicionado
+                 "SOLICITANTE": solicitante,
+                 "SETOR": setor,                  # Adicionado
+                 "NF/PEDIDO": nf_pedido_para_salvar, # Adicionado
+                 "DATA": data_hora, "ID": self.operador_logado_id
             }
             try:
                  arquivo_saida = ARQUIVOS["saida"]
                  df_saida_append = pd.DataFrame([saida_data])
                  header = not os.path.exists(arquivo_saida) or os.path.getsize(arquivo_saida) == 0
 
-                 # Ensure order
-                 saida_cols = ["CODIGO", "DESCRICAO", "QUANTIDADE", "SOLICITANTE", "DATA", "ID"]
+                 # Usa a ordem definida em EXPECTED_COLUMNS
+                 saida_cols = EXPECTED_COLUMNS["saida"]
                  df_saida_append = df_saida_append.reindex(columns=saida_cols)
 
                  df_saida_append.to_csv(arquivo_saida, mode='a', header=header, index=False, encoding='utf-8', quoting=csv.QUOTE_MINIMAL)
 
+                 # 2. Atualizar Estoque (Quantidade)
                  if self._atualizar_estoque_produto(codigo, nova_quantidade_estoque):
-                     messagebox.showinfo("Sucesso", f"Saída registrada para '{desc}' (Solicitante: {solicitante}).\nEstoque restante: {nova_quantidade_estoque}", parent=self.movimentacao_tab)
+                     messagebox.showinfo("Sucesso", f"Saída registrada para '{desc}' (Solic.: {solicitante} / Setor: {setor}).\nEstoque restante: {nova_quantidade_estoque}", parent=self.movimentacao_tab)
                      self._update_status(f"Saída registrada para {codigo}. Estoque restante: {nova_quantidade_estoque}")
+                     # Limpa campos (incluindo os novos)
                      self.saida_codigo_entry.delete(0, tk.END)
                      self.saida_solicitante_entry.delete(0, tk.END)
+                     self.saida_setor_entry.delete(0, tk.END) # Limpa setor
                      self.saida_qtd_entry.delete(0, tk.END)
-                     self.saida_codigo_entry.focus_set()
+                     # Reseta o combobox NF/Pedido
+                     self.saida_nf_pedido_combo['values'] = ["(Informe o Código)"]
+                     self.saida_nf_pedido_combo.current(0)
+                     self.saida_nf_pedido_combo.config(state="disabled")
+
+                     self.saida_codigo_entry.focus_set() # Foca no código novamente
+                     # Atualiza a visualização se estiver mostrando saida ou estoque
                      if self.active_table_name == "saida" or self.active_table_name == "estoque":
                          self._atualizar_tabela_atual()
                  else:
-                     messagebox.showwarning("Atenção", "Saída registrada, mas houve erro ao atualizar o estoque. Verifique os dados.", parent=self.movimentacao_tab)
+                     # A atualização do estoque falhou, mas a saída FOI registrada. Alerta crucial.
+                     messagebox.showwarning("Atenção Crítica", "A Saída foi registrada no histórico, mas OCORREU UM ERRO ao atualizar a quantidade no estoque. Verifique os dados IMEDIATAMENTE para evitar inconsistência.", parent=self.movimentacao_tab)
+                     # Poderia tentar reverter a escrita em Saida.csv aqui, mas é complexo. A melhor opção é alertar fortemente.
 
             except Exception as e:
                  self._update_status(f"Erro ao registrar saída: {e}", error=True)
@@ -1706,7 +1881,9 @@ class AlmoxarifadoApp:
     def _show_product_lookup(self, target_field_prefix):
          df_estoque = self._safe_read_csv(ARQUIVOS["estoque"])
          if df_estoque.empty:
-             messagebox.showinfo("Estoque Vazio", "Não há produtos cadastrados no estoque para buscar.", parent=self.movimentacao_tab)
+             # Para a saída, o messagebox deve pertencer à aba movimentacao
+             parent_tab = self.movimentacao_tab if hasattr(self, 'movimentacao_tab') else self.root
+             messagebox.showinfo("Estoque Vazio", "Não há produtos cadastrados no estoque para buscar.", parent=parent_tab)
              return
 
          dialog = LookupDialog(self.root, "Buscar Produto no Estoque", df_estoque, ["CODIGO", "DESCRICAO"], "CODIGO")
@@ -1717,16 +1894,22 @@ class AlmoxarifadoApp:
               next_focus_widget = None
               if target_field_prefix == "entrada":
                    entry_to_fill = self.entrada_codigo_entry
-                   next_focus_widget = self.entrada_nf_pedido_entry # Focus NF/Pedido next
+                   next_focus_widget = self.entrada_nf_pedido_entry # Focus NF/Pedido Entrada next
               elif target_field_prefix == "saida":
                    entry_to_fill = self.saida_codigo_entry
-                   next_focus_widget = self.saida_solicitante_entry # Focus Solicitante next
+                   # ** Chamar atualização do dropdown APÓS preencher o código **
+                   # next_focus_widget = self.saida_solicitante_entry # Opcional, talvez não focar auto
 
               if entry_to_fill:
                    entry_to_fill.delete(0, tk.END)
                    entry_to_fill.insert(0, result_code)
-              if next_focus_widget:
-                    self._focus_widget(next_focus_widget) # Use helper
+
+              # ** Atualiza o dropdown para Saida após o lookup **
+              if target_field_prefix == "saida":
+                   self._populate_saida_nf_dropdown(result_code)
+                   # Opcional: Mover o foco para o próximo campo desejado
+                   if hasattr(self, 'saida_solicitante_entry'):
+                       self._focus_widget(self.saida_solicitante_entry)
 
 
     def _show_epi_lookup(self):
@@ -1797,23 +1980,12 @@ class AlmoxarifadoApp:
         try:
             index_label = current_df.index[row_num]
             selected_series = current_df.loc[index_label].copy() # Return a copy
-            # print(f"Debug: Dados recuperados para linha visual {row_num}, índice {index_label}")
 
-            # --- PARSE NF/PEDIDO LIST HERE ---
-            # If it's the estoque table and NF/PEDIDO exists, parse it
+            # --- PARSE NF/PEDIDO LIST HERE USING HELPER ---
             if table == self.pandas_table and self.active_table_name == "estoque" and "NF/PEDIDO" in selected_series:
                 nf_str = selected_series["NF/PEDIDO"]
-                if isinstance(nf_str, str) and nf_str.startswith('[') and nf_str.endswith(']'):
-                    try:
-                        selected_series["NF/PEDIDO"] = ast.literal_eval(nf_str)
-                    except (ValueError, SyntaxError):
-                         print(f"Aviso: Falha ao parsear NF/PEDIDO '{nf_str}' na seleção. Deixando como string.")
-                         # Leave as string if parse fails
-                elif isinstance(nf_str, str) and nf_str: # Handle single item string
-                    selected_series["NF/PEDIDO"] = [nf_str]
-                else: # Handle empty string or other types
-                    selected_series["NF/PEDIDO"] = []
-
+                # Chama a função auxiliar para parsear
+                selected_series["NF/PEDIDO"] = self._parse_nf_pedido_list(nf_str)
 
             return selected_series
 
