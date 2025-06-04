@@ -231,7 +231,7 @@ class EditProductDialog(EditDialogBase):
         self._add_entry(main_frame, "LOCALIZACAO", "Localização", 5, 0)
         # --- MODIFIED: Added NF/PEDIDO (read-only for now) ---
         # Editing the list here is complex, just display for now
-        self._add_entry(main_frame, "NF/PEDIDO", "NF/Pedidos (Lista)", 6, 0, state='readonly')
+        self._add_entry(main_frame, "NF/PEDIDO", "NF/Pedidos (Lista)", 6, 0)
 
 
     def _validate_and_collect(self):
@@ -259,6 +259,69 @@ class EditProductDialog(EditDialogBase):
         # NF/PEDIDO is read-only here, no validation needed for it in this dialog
 
         return data
+    
+class EditEntradaDialog(EditDialogBase):
+    """Diálogo para adicionar NF/Pedido a um item existente, usando um registro de entrada como referência."""
+
+    def __init__(self, parent, title, item_data):
+        # Aumentar um pouco a altura para caber os campos e botões
+        # Mantido o mesmo tamanho da base por enquanto
+        super().__init__(parent, title, item_data)
+        # Removido geometry daqui, a base já define um tamanho padrão.
+        # Se precisar ajustar especificamente, faça aqui ou na base.
+
+    def _create_widgets(self):
+        # Cria um frame principal DENTRO do Toplevel (self)
+        main_frame = ttk.Frame(self, padding="10")
+        main_frame.pack(fill=tk.BOTH, expand=True) # Empacota este frame
+
+        ttk.Label(main_frame, text="Detalhes da Entrada Original (Referência)", font="-weight bold").grid(row=0, column=0, columnspan=2, pady=(0, 10), sticky="w")
+
+        fields_to_display = [
+            ("CODIGO", "Código"), ("DESCRICAO", "Descrição"),
+            ("CLASSIFICACAO", "Classificação"), ("QUANTIDADE", "Qtd. Entrada"),
+            ("VALOR UN", "Valor Unit."), ("DATA", "Data Registro"),
+            ("NF/PEDIDO", "NF/Ped. Original"), ("DATA EMISSAO", "Data Emissão Orig.")
+        ]
+        row_num = 1
+        for key, label in fields_to_display:
+             if key in self.item_data:
+                # Passa main_frame como o parent para _add_entry
+                self._add_entry(main_frame, key, label, row_num, 0, state='readonly', width=40)
+                row_num += 1
+
+        ttk.Separator(main_frame, orient=tk.HORIZONTAL).grid(row=row_num, column=0, columnspan=2, sticky="ew", pady=10)
+        row_num += 1
+
+        ttk.Label(main_frame, text="Adicionar Nova NF/Pedido ao Estoque", font="-weight bold").grid(row=row_num, column=0, columnspan=2, pady=(5, 5), sticky="w")
+        row_num += 1
+        # Passa main_frame como o parent para _add_entry
+        self._add_entry(main_frame, "NF_PEDIDO_ADICIONAL", "Nova NF/Pedido", row_num, 0, width=40)
+
+        if "NF_PEDIDO_ADICIONAL" in self.entries:
+             self.entries["NF_PEDIDO_ADICIONAL"].focus_set()
+             # Adiciona o bind de <Return> aqui também para conveniência
+             self.entries["NF_PEDIDO_ADICIONAL"].bind("<Return>", lambda e: self._save())
+
+
+    def _validate_and_collect(self):
+        """Coleta apenas a nova NF/Pedido."""
+        collected_data = super()._validate_and_collect()
+        nf_adicional = collected_data.get("NF_PEDIDO_ADICIONAL", "").strip().upper()
+        if not nf_adicional:
+            raise ValueError("Digite o número da Nova NF/Pedido a ser adicionada ao histórico do item.")
+        return {"NF_PEDIDO_ADICIONAL": nf_adicional}
+
+
+    def _save(self):
+        # Usa a validação personalizada para coletar apenas a NF adicional
+        try:
+            self.updated_data = self._validate_and_collect()
+            if self.updated_data: # Validação passou se retornou a NF
+                self.destroy()
+        except ValueError as e:
+            messagebox.showerror("Erro de Validação", str(e), parent=self)
+
 
 class EditEPIDialog(EditDialogBase):
      def _create_widgets(self):
@@ -744,13 +807,22 @@ class AlmoxarifadoApp:
     def _on_table_select(self, event=None):
         """Habilita/desabilita botões de editar/excluir com base na seleção da tabela."""
         selected = self.pandas_table.getSelectedRowData()
+        # Assume single selection
+        row_is_selected = selected is not None and len(selected) == 1
         is_estoque = self.active_table_name == "estoque"
+        # --- MODIFICADO: Habilita Editar também para Entrada ---
+        is_entrada = self.active_table_name == "entrada"
 
-        if selected is not None and len(selected) == 1 and is_estoque:
-            self.edit_button.config(state=tk.NORMAL)
-            self.delete_button.config(state=tk.NORMAL)
+        # Habilita Editar para Estoque ou Entrada
+        if row_is_selected and (is_estoque or is_entrada):
+             self.edit_button.config(state=tk.NORMAL)
         else:
             self.edit_button.config(state=tk.DISABLED)
+
+        # Habilita Excluir APENAS para Estoque
+        if row_is_selected and is_estoque:
+             self.delete_button.config(state=tk.NORMAL)
+        else:
             self.delete_button.config(state=tk.DISABLED)
 
     def _on_epi_table_select(self, event=None):
@@ -1999,72 +2071,101 @@ class AlmoxarifadoApp:
 
 
     def _edit_selected_item(self):
-         if not self.pandas_table or self.active_table_name != "estoque":
-              messagebox.showwarning("Ação Inválida", "A edição só está disponível para a tabela de Estoque.", parent=self.estoque_tab)
+         """Lida com a edição do item selecionado na visualização da tabela principal."""
+
+         if not self.pandas_table or self.active_table_name not in ["estoque", "entrada"]:
+              # Ajuste para permitir 'entrada'
+              messagebox.showwarning("Ação Inválida", "A edição está disponível apenas para as tabelas de Estoque ou Entrada.", parent=self.estoque_tab)
               return
 
          selected_item_series = self._get_selected_data(self.pandas_table)
 
          if selected_item_series is None:
-              messagebox.showwarning("Nenhuma Seleção", "Por favor, selecione um único item do estoque para editar.", parent=self.estoque_tab)
+              messagebox.showwarning("Nenhuma Seleção", "Por favor, selecione um único item para editar.", parent=self.estoque_tab)
               return
 
          item_dict = selected_item_series.to_dict()
-         if 'CODIGO' not in item_dict:
-             messagebox.showerror("Erro Interno", "Não foi possível obter o código do item selecionado.", parent=self.estoque_tab)
-             return
-         codigo_to_edit = str(item_dict['CODIGO'])
 
-         dialog = EditProductDialog(self.root, f"Editar Produto: {codigo_to_edit}", item_dict)
-         updated_data = dialog.updated_data
+         # --- Lógica para Estoque (sem mudanças) ---
+         if self.active_table_name == "estoque":
+             if 'CODIGO' not in item_dict:
+                 messagebox.showerror("Erro Interno", "Não foi possível obter o código do item selecionado.", parent=self.estoque_tab)
+                 return
+             codigo_to_edit = str(item_dict['CODIGO'])
+             dialog = EditProductDialog(self.root, f"Editar Produto: {codigo_to_edit}", item_dict)
+             updated_data = dialog.updated_data # Bloqueia até fechar
 
-         if updated_data:
-              df_estoque = self._safe_read_csv(ARQUIVOS["estoque"])
-              if 'CODIGO' not in df_estoque.columns:
+             if updated_data: # Usuário salvou
+                # --- (O código para salvar as edições do estoque permanece o mesmo) ---
+                df_estoque = self._safe_read_csv(ARQUIVOS["estoque"])
+                # ... (restante do código de atualização do estoque) ...
+                if 'CODIGO' not in df_estoque.columns:
                    messagebox.showerror("Erro", "Coluna 'CODIGO' não encontrada no estoque para salvar edição.", parent=self.estoque_tab)
                    return
-              df_estoque['CODIGO'] = df_estoque['CODIGO'].astype(str)
+                df_estoque['CODIGO'] = df_estoque['CODIGO'].astype(str)
+                idx = df_estoque.index[df_estoque['CODIGO'] == codigo_to_edit].tolist()
+                if not idx:
+                      messagebox.showerror("Erro", f"Item {codigo_to_edit} não encontrado para salvar após edição.", parent=self.estoque_tab)
+                      return
+                idx = idx[0]
+                try:
+                      original_nf_pedido = df_estoque.loc[idx, "NF/PEDIDO"] # Get original list string
+                      for key, value in updated_data.items():
+                           if key == "NF/PEDIDO": continue # Skip NF/PEDIDO list editing here
+                           if key in df_estoque.columns:
+                                try:
+                                     current_dtype = df_estoque[key].dtype
+                                     if pd.api.types.is_numeric_dtype(current_dtype) and not pd.isna(value):
+                                          value_str = str(value).strip().replace(',', '.')
+                                          value = pd.to_numeric(value_str) if value_str else 0
+                                     elif pd.api.types.is_string_dtype(current_dtype) or pd.api.types.is_object_dtype(current_dtype):
+                                          value = str(value).strip()
+                                     df_estoque.loc[idx, key] = value
+                                except (ValueError, TypeError) as conv_err:
+                                      print(f"Warning: Conversion failed for {key}='{value}': {conv_err}")
+                                      continue
+                      df_estoque.loc[idx, "NF/PEDIDO"] = original_nf_pedido # Ensure NF/PEDIDO remains unchanged
+                      if "DATA" in df_estoque.columns: df_estoque.loc[idx, "DATA"] = datetime.now().strftime("%H:%M %d/%m/%Y")
 
-              idx = df_estoque.index[df_estoque['CODIGO'] == codigo_to_edit].tolist()
-              if not idx:
-                    messagebox.showerror("Erro", f"Item {codigo_to_edit} não encontrado no arquivo para salvar após edição.", parent=self.estoque_tab)
-                    return
-              idx = idx[0]
+                      if self._safe_write_csv(df_estoque, ARQUIVOS["estoque"]):
+                          messagebox.showinfo("Sucesso", f"Produto {codigo_to_edit} atualizado.", parent=self.estoque_tab)
+                          self._atualizar_tabela_atual()
 
-              try:
-                    original_nf_pedido = df_estoque.loc[idx, "NF/PEDIDO"] # Get original list string
+                except Exception as e:
+                    self._update_status(f"Erro ao aplicar edições estoque para {codigo_to_edit}: {e}", error=True)
+                    messagebox.showerror("Erro ao Salvar Edição", f"Não foi possível salvar as alterações para {codigo_to_edit}.\n\nDetalhes: {e}", parent=self.estoque_tab)
+                # --- Fim do Bloco de Salvar Estoque ---
 
-                    # Update fields from dialog
-                    for key, value in updated_data.items():
-                         if key == "NF/PEDIDO": continue # Skip NF/PEDIDO list editing here
-                         if key in df_estoque.columns:
-                              try:
-                                   current_dtype = df_estoque[key].dtype
-                                   if pd.api.types.is_numeric_dtype(current_dtype) and not pd.isna(value):
-                                        value_str = str(value).strip().replace(',', '.')
-                                        value = pd.to_numeric(value_str) if value_str else 0
-                                   elif pd.api.types.is_string_dtype(current_dtype) or pd.api.types.is_object_dtype(current_dtype):
-                                        value = str(value).strip()
-                                   df_estoque.loc[idx, key] = value
-                              except (ValueError, TypeError) as conv_err:
-                                    print(f"Warning: Conversion failed for {key}='{value}': {conv_err}")
-                                    # Keep original value if conversion fails
-                                    continue
+         # --- NOVA Lógica para Entrada ---
+         elif self.active_table_name == "entrada":
+             if 'CODIGO' not in item_dict:
+                  # A linha selecionada na tabela de entrada pode não ter todos os dados se o arquivo estiver corrompido
+                  messagebox.showerror("Erro Interno", "Não foi possível obter o Código do produto da linha de entrada selecionada.", parent=self.estoque_tab)
+                  return
+             codigo_produto = str(item_dict['CODIGO']) # Código do produto relacionado a esta entrada
+             desc_produto = item_dict.get('DESCRICAO', 'N/A')
 
-                    # Ensure NF/PEDIDO remains unchanged by this edit dialog
-                    df_estoque.loc[idx, "NF/PEDIDO"] = original_nf_pedido
+             # Abre o diálogo de "edição" de entrada
+             dialog = EditEntradaDialog(self.root, f"Adicionar NF/Pedido (Ref: {codigo_produto} - {desc_produto})", item_dict)
+             result_data = dialog.updated_data # Bloqueia até fechar
 
-                    if "DATA" in df_estoque.columns:
-                        df_estoque.loc[idx, "DATA"] = datetime.now().strftime("%H:%M %d/%m/%Y")
+             if result_data and "NF_PEDIDO_ADICIONAL" in result_data:
+                  # Usuário clicou em Salvar e digitou uma nova NF
+                  nf_adicional = result_data["NF_PEDIDO_ADICIONAL"]
 
-                    if self._safe_write_csv(df_estoque, ARQUIVOS["estoque"]):
-                        messagebox.showinfo("Sucesso", f"Produto {codigo_to_edit} atualizado.", parent=self.estoque_tab)
-                        self._atualizar_tabela_atual()
-                    # else: Error shown by safe_write
+                  # Chama a função auxiliar para adicionar a NF ao arquivo de Estoque
+                  if self._adicionar_nf_pedido_estoque(codigo_produto, nf_adicional):
+                       messagebox.showinfo("Sucesso", f"NF/Pedido '{nf_adicional}' adicionada com sucesso ao histórico do item {codigo_produto}.", parent=self.estoque_tab)
+                       self._update_status(f"NF/Pedido {nf_adicional} adicionado ao item {codigo_produto}.")
+                       # Atualiza a visualização do ESTOQUE se ela estiver ativa
+                       if self.active_table_name == "estoque":
+                            self._atualizar_tabela_atual()
+                       # Não precisa atualizar a visualização de ENTRADA pois o registro histórico não mudou
+                  else:
+                       # Mensagem de erro já foi mostrada por _adicionar_nf_pedido_estoque
+                       self._update_status(f"Falha ao adicionar NF/Pedido {nf_adicional} ao item {codigo_produto}.", error=True)
 
-              except Exception as e:
-                  self._update_status(f"Erro ao aplicar edições para {codigo_to_edit}: {e}", error=True)
-                  messagebox.showerror("Erro ao Salvar Edição", f"Não foi possível salvar as alterações para {codigo_to_edit}.\n\nDetalhes: {e}", parent=self.estoque_tab)
+             # else: O usuário cancelou ou não digitou uma NF/Pedido adicional.
 
 
     def _delete_selected_item(self):
